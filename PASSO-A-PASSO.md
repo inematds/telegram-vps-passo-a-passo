@@ -13,7 +13,7 @@ São 9 etapas. Cada uma termina com um teste e a **saída esperada**. Dá para t
 O arquivo completo de cada etapa (gabarito) está em `etapas/NN-nome/bot.py` no repositório
 `https://github.com/inematds/telegram-vps-passo-a-passo`.
 
-> Só biblioteca padrão do Python 3. Nada de `pip install`. Nada de API paga: o Claude Code roda pela assinatura.
+> Testado no Ubuntu 24.04. Só biblioteca padrão do Python 3. Nada de `pip install`. Nada de API paga: o Claude Code roda pela assinatura.
 
 ---
 
@@ -26,9 +26,9 @@ O arquivo completo de cada etapa (gabarito) está em `etapas/NN-nome/bot.py` no 
 U=maria                          # troque maria pelo nome que você quer
 adduser $U                       # pede uma senha
 mkdir -p /home/$U/.ssh && cp ~/.ssh/authorized_keys /home/$U/.ssh/ && chown -R $U: /home/$U/.ssh && chmod 700 /home/$U/.ssh
-loginctl enable-linger $U        # opcional aqui; a etapa 9 também faz
+loginctl enable-linger $U        # obrigatório: deixa o bot no ar depois que você sai do SSH
 exit
-# de volta ao seu computador
+# de volta ao seu computador; troque maria pelo nome que você escolheu
 ssh maria@IP_DA_VPS
 ```
 
@@ -57,6 +57,8 @@ claude -p "responda só: ok" --model haiku
 ```
 
 Saída esperada: `ok`.
+
+Numa VPS sem tela, o `/login` mostra um link: abra-o no navegador do seu computador, entre na conta da assinatura e cole de volta no terminal o código que aparecer.
 
 Se aparecer `claude: command not found` logo depois de instalar, saia e entre de novo no SSH, ou rode `export PATH="$HOME/.local/bin:$PATH"`.
 
@@ -281,6 +283,8 @@ python3 ferramentas/telegram_falso.py fala --de 111 "/start"
 
 Esperado: `bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer coisa eu pergunto.`
 
+Para editar o `.env`: `nano .env`, troque `cole_o_token_aqui` pelo token do BotFather (e preencha `DONOS=`), salve com Ctrl+O e Enter e saia com Ctrl+X.
+
 **Descubra o seu número no bot real** (o Telegram chama de `from.id`):
 
 1. No `.env`, deixe `DONOS=` vazio e ponha o token real em `TELEGRAM_BOT_TOKEN`.
@@ -288,8 +292,6 @@ Esperado: `bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer co
 3. No celular, mande `/start` para o seu bot. Ele responde "Este bot é privado." — é o esperado.
 4. Olhe o **terminal da VPS** (não o Telegram): aparece `recusado: from.id=123456789`. Esse número é o seu.
 5. Pare o bot (Ctrl+C), grave no `.env`: `DONOS=123456789` (o seu número), e rode de novo: agora o `/start` responde "Pronto. …".
-
-Para editar o `.env`: `nano .env`, troque `cole_o_token_aqui` pelo token do BotFather (e preencha `DONOS=`), salve com Ctrl+O e Enter e saia com Ctrl+X.
 
 Se aparecer mais de um número, só um é o seu: o que surgiu na hora em que você mandou o `/start`.
 
@@ -302,7 +304,7 @@ Agora o pedido do dono vai para o `claude -p`. A trava está **no comando**:
 - `--allowedTools` só libera leitura: `Read`, `Glob` e `Grep` **só dentro de `area/`** (`./**`), e `df`, `ls`, `free`, `uptime` (sem `du`: `du --files0-from=<arquivo>` mostraria o conteúdo do arquivo na mensagem de erro). Fora da área a IA só vê espaço em disco e nomes de pastas e arquivos, **nunca o conteúdo** dos arquivos;
 - `--disallowedTools` nega, mesmo assim, chaves e logins (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), o histórico do terminal, todo `.env`, e qualquer escrita (`Edit`, `Write`, `sudo`, `curl`), e os comandos que mostrariam conteúdo de arquivo (`cat`, `head`, `tail`, `less`, `more`, `sed`, `awk`, `grep`, `find`, `du`);
 - `--permission-mode dontAsk` recusa sozinho tudo o que não foi liberado;
-- `--setting-sources ""` e `--strict-mcp-config` fazem o Claude **ignorar o seu `settings.json`, CLAUDE.md, hooks e MCP**. Sem isso, uma regra "allow" sua (ex.: `Bash(rm:*)`) se soma às liberadas e **fura a trava** — testamos: sem essa linha, "apague a pasta logs" apagou;
+- `--setting-sources ""` e `--strict-mcp-config` fazem o Claude **ignorar o seu `settings.json`** (o arquivo de preferências do Claude Code, onde você pode ter liberado comandos para rodar sem perguntar)**, CLAUDE.md, hooks e MCP**. Sem isso, uma regra "allow" sua (ex.: `Bash(rm:*)`) se soma às liberadas e **fura a trava** — testamos: sem essa linha, "apague a pasta logs" apagou;
 - roda dentro de `area/` e sem nenhuma chave de API no ambiente (assinatura).
 
 Na linha do `import`, acrescente `subprocess`:
@@ -437,6 +439,8 @@ A IA continua só lendo, mas agora responde num **formato fixo** (JSON): a respo
 - só opções da lista curta de cada um (nada de `-C`, `-t`, `--directory=`, `--target-directory=`, que levam para fora);
 - sem `|`, `;`, `$`, crase, `<`, `>`, `~` ou `..`; todo caminho (mesmo por atalho) dentro de `area/`;
 - nunca apagar nem mover a própria área.
+
+O bot roda os comandos aprovados sem shell: um curinga como `*.log` não funciona, então a IA tem de citar cada arquivo pelo nome (ou a pasta inteira).
 
 Na linha do `import`, acrescente `re` e `shlex`:
 
@@ -597,7 +601,7 @@ Esperado: a resposta termina com `Vou fazer: ...`, `Comandos: rm -r logs` e `Con
 
 Agora o "sim" roda **exatamente** os comandos mostrados — pelo bot, sem shell, dentro da área. Cuidados:
 
-- só confirma com `sim`, `s`, `confirmo`, `confirma`, `yes` (mesmo em frase: "sim, pode apagar") ou com `pode`, `ok`, `manda`, `faz` **sozinhos**; mensagem com `?` nunca confirma ("pode listar antes?" não apaga nada), e nem frase com `mas`, `antes`, `primeiro`, `depois` ou `espera` ("sim, mas antes faz backup" não é um sim limpo: cancela e você pede de novo);
+- só confirma com `sim`, `s`, `confirmo`, `confirma`, `yes` (mesmo em frase: "sim, pode apagar") ou com `pode`, `ok`, `manda`, `faz` **sozinhos**; mensagem com `?` nunca confirma ("pode listar antes?" não apaga nada), e nem frase com `mas`, `antes`, `primeiro`, `depois` ou `espera` ("sim, mas antes faz backup" não é um sim limpo: cancela e você pede de novo); Qualquer negação na frase também cancela (`não`, `nao`, `no`, `not`, `cancela`, `cancelar`, `nunca`, `pare`, `para`): "sim, não apaga" não apaga nada.
 - qualquer outra resposta descarta o pedido pendente: `não` (ou `cancela`) responde "Cancelado. Nada foi mudado."; outra frase vira um **pedido novo** e vai para a IA;
 - o pedido vale 10 minutos;
 - antes de extrair um `.tar`, o bot lista o pacote e recusa caminho absoluto, `..` ou link.
@@ -625,7 +629,8 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
-    if any(w in palavras for w in ("mas", "antes", "primeiro", "depois", "espera")):
+    if any(w in palavras for w in ("mas", "antes", "primeiro", "depois", "espera",
+                                   "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
 
@@ -693,12 +698,12 @@ por:
 ```bash
 TELEGRAM_BOT_TOKEN=x python3 -c "
 import bot
-for t in ['sim', 'sim, pode apagar', 'pode', 'pode listar antes?', 'faz um backup primeiro', 'sim, mas antes faz backup', 'não']:
+for t in ['sim', 'sim, pode apagar', 'pode', 'pode listar antes?', 'faz um backup primeiro', 'sim, mas antes faz backup', 'sim, não apaga', 'não']:
     print(repr(t), bot.eh_sim(t))
 "
 ```
 
-Esperado: `True` para os três primeiros, `False` para os quatro últimos.
+Esperado: `True` para os três primeiros, `False` para os cinco últimos.
 
 **Teste com o bot** (reinicie o bot):
 
@@ -793,7 +798,7 @@ python3 testes/testar_travas.py
 
 O teste importa o seu `bot.py` e usa os nomes do texto (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): se você renomeou algo, ele quebra. Ele usa uma área e uma auditoria **temporárias** (não mexe no bot no ar) e monta duas armadilhas de propósito: um `settings.json` que libera `rm` (o bot tem de ignorar) e um arquivo-isca com um segredo falso **fora** da área (a IA não pode mostrar o conteúdo). Saída esperada: todas as linhas `PASSOU ...` e, no fim, `TUDO OK`.
 
-> Todos os 40 testes valem na sua VPS: o `.env` falso e a isca com segredo falso ficam numa pasta temporária criada pelo próprio teste. Saída esperada: 40 linhas `PASSOU` e `TUDO OK`.
+> Todos os 44 testes valem na sua VPS: o `.env` falso e a isca com segredo falso ficam numa pasta temporária criada pelo próprio teste. Saída esperada: 44 linhas `PASSOU` e `TUDO OK`.
 
 Pare o bot de teste (Ctrl+C nos terminais 1 e 2). Agora o bot vira um **serviço do systemd** (o programa do Linux que liga e mantém outros programas no ar): ele volta sozinho se cair e quando a VPS reinicia. É um serviço **do seu usuário** (`--user`), sem `sudo`.
 
@@ -827,14 +832,14 @@ WantedBy=default.target
 EOF
 systemctl --user daemon-reload
 systemctl --user enable --now telegram-vps-remoto
-loginctl enable-linger "$USER"     # "linger": o serviço continua no ar depois que você sai do SSH
+loginctl show-user "$USER" -p Linger     # esperado: Linger=yes (o "linger", ligado como root na etapa 1, deixa o serviço no ar depois que você sai do SSH)
 systemctl --user is-active telegram-vps-remoto
 journalctl --user -u telegram-vps-remoto -n 3 --no-pager
 ```
 
 Saída esperada: `active` e uma linha `no ar · donos=1 · área=/home/<você>/kits/telegram-vps-remoto/area`.
 
-> Se o `loginctl enable-linger` pedir senha ou disser que não tem permissão, rode `sudo loginctl enable-linger "$USER"` (uma vez só). Sem o linger, o bot para quando você sai do SSH.
+> Se aparecer `Linger=no`, entre na VPS como root e rode `loginctl enable-linger maria` (com o nome do seu usuário). Sem o linger, o bot para quando você sai do SSH.
 
 > A unidade usa a pasta `~/kits/telegram-vps-remoto` (`%h` = sua home). Se o seu bot está em outra pasta, troque o caminho em `WorkingDirectory=` e em `ExecStart=`.
 >

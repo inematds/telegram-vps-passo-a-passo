@@ -15,7 +15,7 @@ There are 9 steps. Each ends with a test and the **expected output**. You can te
 The complete file for each step (the answer key) is in `etapas/NN-nome/bot.py` in the repository  
 `https://github.com/inematds/telegram-vps-passo-a-passo`.
 
-> Only the Python 3 standard library. No `pip install`. No paid API: Claude Code runs through your subscription.
+> Tested on Ubuntu 24.04. Only the Python 3 standard library. No `pip install`. No paid API: Claude Code runs through your subscription.
 
 ---
 
@@ -28,9 +28,9 @@ The complete file for each step (the answer key) is in `etapas/NN-nome/bot.py` i
 U=maria                          # replace maria with the name you want
 adduser $U                       # asks for a password
 mkdir -p /home/$U/.ssh && cp ~/.ssh/authorized_keys /home/$U/.ssh/ && chown -R $U: /home/$U/.ssh && chmod 700 /home/$U/.ssh
-loginctl enable-linger $U        # optional here; step 9 does it too
+loginctl enable-linger $U        # required: keeps the bot running after you log out of SSH
 exit
-# back on your computer
+# back on your computer; replace maria with the name you chose
 ssh maria@VPS_IP
 ```
 
@@ -59,6 +59,8 @@ claude -p "responda só: ok" --model haiku
 ```
 
 Expected output: `ok`.
+
+On a VPS without a screen, `/login` shows a link: open it in your computer’s browser, sign in with your subscription account and paste the code it shows back into the terminal.
 
 If you get `claude: command not found` right after installing, log out and back in to SSH, or run `export PATH="$HOME/.local/bin:$PATH"`.
 
@@ -286,6 +288,8 @@ python3 ferramentas/telegram_falso.py fala --de 111 "/start"
 
 Expected: `bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer coisa eu pergunto.`
 
+To edit `.env`: `nano .env`, replace `cole_o_token_aqui` with the BotFather token (and fill in `DONOS=`), save with Ctrl+O and Enter, and exit with Ctrl+X.
+
 **Find your number on the real bot** (Telegram calls it `from.id`):
 
 1. In `.env`, leave `DONOS=` empty and put the real token in `TELEGRAM_BOT_TOKEN`.
@@ -293,8 +297,6 @@ Expected: `bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer co
 3. On your phone, send `/start` to your bot. It replies “Este bot é privado.” — that’s expected.
 4. Look at the **VPS terminal** (not Telegram): it shows `recusado: from.id=123456789`. That number is yours.
 5. Stop the bot (Ctrl+C), save `DONOS=123456789` (your number) in `.env`, and run it again: now `/start` gets the “Pronto. …” reply.
-
-To edit `.env`: `nano .env`, replace `cole_o_token_aqui` with the BotFather token (and fill in `DONOS=`), save with Ctrl+O and Enter, and exit with Ctrl+X.
 
 If more than one number appears, only one is yours: the one that appeared when you sent `/start`.
 
@@ -307,7 +309,7 @@ Now the owner’s request goes to `claude -p`. The safeguard is **in the command
 - `--allowedTools` allows reading only: `Read`, `Glob`, and `Grep` **only inside `area/`** (`./**`), plus `df`, `ls`, `free`, and `uptime` (no `du`: `du --files0-from=<file>` would show the file's content in its error message). Outside the area, the AI can see only disk space and folder and file names, **never file contents**.
 - `--disallowedTools` denies access anyway to keys and logins (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), terminal history, all `.env` files, and any writes (`Edit`, `Write`, `sudo`, `curl`), plus the commands that would show file contents (`cat`, `head`, `tail`, `less`, `more`, `sed`, `awk`, `grep`, `find`, `du`).
 - `--permission-mode dontAsk` automatically rejects anything that wasn’t allowed.
-- `--setting-sources ""` and `--strict-mcp-config` make Claude **ignore your `settings.json`, CLAUDE.md, hooks, and MCP**. Without them, one of your own “allow” rules (for example, `Bash(rm:*)`) is added to the allowed tools and **breaks the safeguard** — we tested it: without this line, “delete the logs folder” deleted it.
+- `--setting-sources ""` and `--strict-mcp-config` make Claude **ignore your `settings.json`** (Claude Code’s preferences file, where you may have allowed commands to run without asking)**, CLAUDE.md, hooks, and MCP**. Without them, one of your own “allow” rules (for example, `Bash(rm:*)`) is added to the allowed tools and **breaks the safeguard** — we tested it: without this line, “delete the logs folder” deleted it.
 - It runs inside `area/` and without any API keys in its environment (subscription).
 
 Add `subprocess` to the `import` line:
@@ -442,6 +444,8 @@ The AI still only reads, but now it replies in a **fixed format** (JSON): the re
 - only options from each command’s short allowlist (no `-C`, `-t`, `--directory=`, or `--target-directory=`, which could lead outside);
 - no `|`, `;`, `$`, backtick, `<`, `>`, `~`, or `..`; every path (including shortcuts) must stay inside `area/`;
 - never delete or move the area itself.
+
+The bot runs approved commands without a shell: a wildcard like `*.log` does not work, so the AI has to name each file (or the whole folder).
 
 Add `re` and `shlex` to the `import` line:
 
@@ -602,7 +606,7 @@ Expected: the response ends with `Vou fazer: ...`, `Comandos: rm -r logs`, and `
 
 Now “yes” runs **exactly** the commands shown — by the bot, without a shell, inside the area. Safeguards:
 
-- confirmation accepts only `sim`, `s`, `confirmo`, `confirma`, `yes` (even in a sentence, such as “sim, pode apagar”) or `pode`, `ok`, `manda`, `faz` **by themselves**; a message containing `?` never confirms (“pode listar antes?” won’t delete anything), and neither does a sentence containing `mas`, `antes`, `primeiro`, `depois`, or `espera` (“sim, mas antes faz backup” is not a clean yes: it cancels, and you can ask again);
+- confirmation accepts only `sim`, `s`, `confirmo`, `confirma`, `yes` (even in a sentence, such as “sim, pode apagar”) or `pode`, `ok`, `manda`, `faz` **by themselves**; a message containing `?` never confirms (“pode listar antes?” won’t delete anything), and neither does a sentence containing `mas`, `antes`, `primeiro`, `depois`, or `espera` (“sim, mas antes faz backup” is not a clean yes: it cancels, and you can ask again); Any negation in the sentence also cancels (`não`, `nao`, `no`, `not`, `cancela`, `cancelar`, `nunca`, `pare`, `para`): “sim, não apaga” deletes nothing.
 - any other reply discards the pending request: `não` (or `cancela`) replies “Cancelado. Nada foi mudado.”; any other sentence becomes a **new request** and goes to the AI;
 - the request is valid for 10 minutes;
 - before extracting a `.tar`, the bot lists the archive and rejects absolute paths, `..`, or links.
@@ -630,7 +634,8 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
-    if any(w in palavras for w in ("mas", "antes", "primeiro", "depois", "espera")):
+    if any(w in palavras for w in ("mas", "antes", "primeiro", "depois", "espera",
+                                   "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
 
@@ -698,12 +703,12 @@ with:
 ```bash
 TELEGRAM_BOT_TOKEN=x python3 -c "
 import bot
-for t in ['sim', 'sim, pode apagar', 'pode', 'pode listar antes?', 'faz um backup primeiro', 'sim, mas antes faz backup', 'não']:
+for t in ['sim', 'sim, pode apagar', 'pode', 'pode listar antes?', 'faz um backup primeiro', 'sim, mas antes faz backup', 'sim, não apaga', 'não']:
     print(repr(t), bot.eh_sim(t))
 "
 ```
 
-Expected: `True` for the first three, `False` for the last four.
+Expected: `True` for the first three, `False` for the last five.
 
 **Test with the bot** (restart it):
 
@@ -801,7 +806,7 @@ python3 testes/testar_travas.py
 
 The test imports your `bot.py` and uses the names from this guide (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): if you renamed anything, it will fail. It uses a **temporary** area and audit log (it won’t touch the running bot) and sets up two deliberate traps: a `settings.json` that allows `rm` (the bot must ignore it) and a decoy file with a fake secret **outside** the area (the AI must not reveal its contents). Expected output: every `PASSOU ...` line and, at the end, `TUDO OK`.
 
-> All 40 tests are valid on your VPS: the fake `.env` and the bait with a fake secret live in a temporary folder the test creates itself. Expected output: 40 `PASSOU` lines and `TUDO OK`.
+> All 44 tests are valid on your VPS: the fake `.env` and the bait with a fake secret live in a temporary folder the test creates itself. Expected output: 44 `PASSOU` lines and `TUDO OK`.
 
 Stop the test bot (Ctrl+C in terminals 1 and 2). Now the bot becomes a **systemd service** (the Linux program that starts and keeps other programs running): it will restart by itself if it crashes and when the VPS reboots. It’s a service **for your user** (`--user`), with no `sudo`.
 
@@ -835,14 +840,14 @@ WantedBy=default.target
 EOF
 systemctl --user daemon-reload
 systemctl --user enable --now telegram-vps-remoto
-loginctl enable-linger "$USER"     # "linger": the service stays up after you log out of SSH
+loginctl show-user "$USER" -p Linger     # expected: Linger=yes ("linger", turned on as root in step 1, keeps the service up after you log out of SSH)
 systemctl --user is-active telegram-vps-remoto
 journalctl --user -u telegram-vps-remoto -n 3 --no-pager
 ```
 
 Expected output: `active` and a line like `no ar · donos=1 · área=/home/<you>/kits/telegram-vps-remoto/area`.
 
-> If `loginctl enable-linger` asks for a password or says you don’t have permission, run `sudo loginctl enable-linger "$USER"` (once). Without linger, the bot stops when you leave SSH.
+> If you see `Linger=no`, log in to the VPS as root and run `loginctl enable-linger maria` (with your user’s name). Without linger, the bot stops when you log out of SSH.
 
 > The unit uses the `~/kits/telegram-vps-remoto` folder (`%h` = your home directory). If your bot is in another folder, change the path in `WorkingDirectory=` and `ExecStart=`.
 >

@@ -76,7 +76,8 @@ for p in ["cp --target-directory=/tmp logs", "tar --directory=/tmp -xf a.tar", "
     caso(f"recusa opção: {p}", recusa(p))
 for t, esperado in [("sim", True), ("sim, pode apagar", True), ("pode", True), ("ok!", True),
                     ("pode listar antes?", False), ("faz um backup primeiro", False), ("não", False), ("ok?", False),
-                    ("sim, mas antes faz backup", False), ("s, mas antes faz backup", False)]:
+                    ("sim, mas antes faz backup", False), ("s, mas antes faz backup", False),
+                    ("sim, não apaga", False), ("s não", False), ("sim, cancela", False), ("yes no", False)]:
     caso(f"confirmação '{t}' = {esperado}", bot.eh_sim(t) == esperado)
 os.symlink(os.path.expanduser("~/.ssh"), os.path.join(bot.AREA, "atalho")) if not os.path.lexists(os.path.join(bot.AREA, "atalho")) else None
 caso("recusa link para fora", recusa("rm -r atalho/known_hosts"))

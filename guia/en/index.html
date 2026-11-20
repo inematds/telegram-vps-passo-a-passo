@@ -156,7 +156,7 @@
 
 <section id="resumo" class="resumo"><div class="wrap">
   <span class="chip">In brief</span>
-  <p>This step-by-step guide shows you how to build a Telegram bot on your own VPS that passes your requests to Claude Code through your subscription. It’s for anyone with a server who wants to manage it from their phone without giving AI the keys to the house: only you can talk to the bot, the AI can only read, and every change waits for your “yes.” There are 9 steps, each with the command, expected output, and a fake Telegram to test with. You need a Linux VPS with Python 3, Claude Code logged in through your subscription, and a Telegram account.</p>
+  <p>This step-by-step guide shows you how to build a Telegram bot on your own VPS that passes your requests to Claude Code through your subscription. It’s for anyone with a server who wants to manage it from their phone without giving AI the keys to the house: only you can talk to the bot, the AI can only read, and every change waits for your “yes.” There are 9 steps, each with the command, expected output, and a fake Telegram to test with. You need a Linux VPS with Python 3, Claude Code logged in through your subscription, and a Telegram account. Tested on Ubuntu 24.04.</p>
   <figure><img src="../assets/banner-grade-en.jpg" alt="The bot's six safeguards: only you can talk to it, the AI can only read and propose, you say yes, everything is logged, and it runs 24/7" loading="lazy"></figure>
 </div></section>
 
@@ -198,7 +198,7 @@
   </div>
   <div class="alerta">
     <h3>⚠️ The loophole this guide closes</h3>
-    <p>Claude Code combines the bot’s permissions with those in your own <code>settings.json</code>. We tested it: on a machine where <code>rm</code> was allowed, the request “delete the logs folder” really deleted it, even though the bot asked for “read only.” In step 5, the bot starts ignoring those settings (<code>--setting-sources ""</code>), and the final test deliberately sets up this kind of trap to prove it has no effect.</p>
+    <p>Claude Code combines the bot’s permissions with those in your own <code>settings.json</code> (Claude Code’s preferences file, where you may have allowed commands to run without asking). We tested it: on a machine where <code>rm</code> was allowed, the request “delete the logs folder” really deleted it, even though the bot asked for “read only.” In step 5, the bot starts ignoring those settings (<code>--setting-sources ""</code>), and the final test deliberately sets up this kind of trap to prove it has no effect.</p>
   </div>
 </div></section>
 
@@ -215,9 +215,9 @@
 U=maria                          <span class="c"># replace maria with the name you want</span>
 adduser $U                       <span class="c"># asks for a password</span>
 mkdir -p /home/$U/.ssh &amp;&amp; cp ~/.ssh/authorized_keys /home/$U/.ssh/ &amp;&amp; chown -R $U: /home/$U/.ssh &amp;&amp; chmod 700 /home/$U/.ssh
-loginctl enable-linger $U        <span class="c"># optional here; step 9 does it too</span>
+loginctl enable-linger $U        <span class="c"># required: keeps the bot running after you log out of SSH</span>
 exit
-<span class="c"># back on your computer</span>
+<span class="c"># back on your computer; replace maria with the name you chose</span>
 ssh maria@VPS_IP</pre>
     <p>Always log in directly with <code>ssh maria@VPS_IP</code>. <strong>Do not use <code>su - maria</code></strong>: step 9’s <code>systemctl --user</code> needs a session opened by a direct SSH login.</p>
     <pre>python3 --version
@@ -232,6 +232,7 @@ curl -fsSLo ferramentas/telegram_falso.py https://raw.githubusercontent.com/inem
 <pre class="out">Python 3.12.3          (3.10 or newer)
 0
 ok</pre>
+    <p>On a VPS without a screen, <code>/login</code> shows a link: open it in your computer’s browser, sign in with your subscription account and paste the code it shows back into the terminal.</p>
     <p>If you get <code>claude: command not found</code> right after installing, log out and back in to SSH, or run <code>export PATH="$HOME/.local/bin:$PATH"</code>.</p>
     <p><strong>From here on, every command runs inside <code>~/kits/telegram-vps-remoto</code></strong> (the bot folder).</p>
   </div></div>
@@ -239,6 +240,7 @@ ok</pre>
   <div class="step"><div class="b">2</div><div>
     <h3>Create the bot with BotFather and save the token</h3>
     <p>On Telegram, message <strong>@BotFather</strong>, send <code>/newbot</code>, and save the token in a <code>.env</code> file that only you can read. The token is the bot’s password: never put it in git, a screenshot, or a video. The first <code>bot.py</code> only introduces itself to Telegram.</p>
+    <p>BotFather first asks for a name (anything) and then a username that ends in <code>bot</code> (e.g. <code>my_vps_bot</code>). At the end it gives you the token, shaped like <code>123456789:ABC…</code>.</p>
 <p><strong>Terminals:</strong> each "terminal" is a window (or tab) with its own SSH connection to the VPS. To open another, open a new window and SSH in again; every terminal starts with <code>cd ~/kits/telegram-vps-remoto</code>. The <code>cat &gt; .env &lt;&lt;'EOF' … EOF</code> (heredoc) writes everything between the two lines into the file.</p>
     <!-- codigo:02-token-e-env -->
     <p class="gab"><strong>First, save this step's code as <code>bot.py</code></strong> in the bot folder (it replaces the previous one). Quick way: download it with the <code>curl</code> below. Or write it yourself: <code>nano bot.py</code>, delete what's there, paste the code from the block below, save with <kbd>Ctrl+O</kbd> and <kbd>Enter</kbd>, and exit with <kbd>Ctrl+X</kbd>. If the bot is already running, stop it (<kbd>Ctrl+C</kbd> in terminal 2) and run it again so the new file takes effect. In the tests, what comes in front of the command (<code>TELEGRAM_BOT_TOKEN=123:falso</code>, <code>DONOS=111</code>) wins over <code>.env</code>.</p>
@@ -456,6 +458,7 @@ python3 ferramentas/telegram_falso.py fala --de 111 "/start"</pre>
 bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer coisa eu pergunto.   (= Ready. Ask for anything you need on the VPS. I’ll ask before changing anything.)</pre>
     <p><code>from.id</code> is the fixed number Telegram gives each person; it is how the bot knows who is talking.</p>
     <p>A variable written in front of the command (<code>DONOS=111 python3 bot.py</code>) wins over the one in <code>.env</code>: that way you test without touching the file.</p>
+    <p>To edit <code>.env</code>: <code>nano .env</code>, replace <code>cole_o_token_aqui</code> with the BotFather token (and, later, fill in <code>DONOS=</code>), save with <kbd>Ctrl+O</kbd> and <kbd>Enter</kbd>, and exit with <kbd>Ctrl+X</kbd>.</p>
     <p><strong>To find your ID using the real bot:</strong></p>
     <ul>
       <li>leave <code>DONOS=</code> empty in <code>.env</code>, with the real token;</li>
@@ -464,7 +467,6 @@ bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer coisa eu perg
       <li>check the <strong>VPS terminal</strong>, not Telegram: you’ll see <code>recusado: from.id=123456789</code>;</li>
       <li>save that ID in <code>.env</code> (<code>DONOS=123456789</code>) and restart the bot.</li>
     </ul>
-    <p>To edit <code>.env</code>: <code>nano .env</code>, replace <code>cole_o_token_aqui</code> with the BotFather token (and, later, fill in <code>DONOS=</code>), save with <kbd>Ctrl+O</kbd> and <kbd>Enter</kbd>, and exit with <kbd>Ctrl+X</kbd>.</p>
       </div></div>
 
   <div class="step"><div class="b">5</div><div>
@@ -631,6 +633,7 @@ bot → Não consigo ler esse arquivo …   (= I can’t read that file … — 
       <li>no characters that chain or redirect commands;</li>
       <li>every path must stay inside the working area.</li>
     </ul>
+    <p>The bot runs approved commands without a shell: a wildcard like <code>*.log</code> does not work, so the AI has to name each file (or the whole folder).</p>
 <!-- codigo:06-proposta-e-validador -->
     <p class="gab"><strong>First, save this step's code as <code>bot.py</code></strong> in the bot folder (it replaces the previous one). Quick way: download it with the <code>curl</code> below. Or write it yourself: <code>nano bot.py</code>, delete what's there, paste the code from the block below, save with <kbd>Ctrl+O</kbd> and <kbd>Enter</kbd>, and exit with <kbd>Ctrl+X</kbd>. If the bot is already running, stop it (<kbd>Ctrl+C</kbd> in terminal 2) and run it again so the new file takes effect. In the tests, what comes in front of the command (<code>TELEGRAM_BOT_TOKEN=123:falso</code>, <code>DONOS=111</code>) wins over <code>.env</code>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/06-proposta-e-validador/bot.py</pre>
@@ -870,7 +873,7 @@ ls area/logs | wc -l</pre>
 
   <div class="step"><div class="b">7</div><div>
     <h3>After your “yes,” the bot executes</h3>
-    <p>Only <code>sim</code>, <code>s</code>, <code>confirmo</code>, <code>confirma</code>, <code>yes</code> (even in a sentence, such as “sim, pode apagar”) or <code>pode</code>, <code>ok</code>, <code>manda</code>, <code>faz</code> on their own count as confirmation. A message with “?” never confirms (“pode listar antes?” deletes nothing), nor does a sentence with “mas,” “antes,” “primeiro,” “depois,” or “espera”: “sim, mas antes faz backup” cancels, and you must ask again. The request is valid for 10 minutes, and a <code>.tar</code> archive is checked before it is opened.</p>
+    <p>Only <code>sim</code>, <code>s</code>, <code>confirmo</code>, <code>confirma</code>, <code>yes</code> (even in a sentence, such as “sim, pode apagar”) or <code>pode</code>, <code>ok</code>, <code>manda</code>, <code>faz</code> on their own count as confirmation. A message with “?” never confirms (“pode listar antes?” deletes nothing), nor does a sentence with “mas,” “antes,” “primeiro,” “depois,” or “espera”: “sim, mas antes faz backup” cancels, and you must ask again. The request is valid for 10 minutes, and a <code>.tar</code> archive is checked before it is opened. Any negation in the sentence also cancels (“não”, “cancela”, “nunca”, “pare”, “para”, “no”, “not”): “sim, não apaga” deletes nothing.</p>
 <!-- codigo:07-sim-e-execucao -->
     <p class="gab"><strong>First, save this step's code as <code>bot.py</code></strong> in the bot folder (it replaces the previous one). Quick way: download it with the <code>curl</code> below. Or write it yourself: <code>nano bot.py</code>, delete what's there, paste the code from the block below, save with <kbd>Ctrl+O</kbd> and <kbd>Enter</kbd>, and exit with <kbd>Ctrl+X</kbd>. If the bot is already running, stop it (<kbd>Ctrl+C</kbd> in terminal 2) and run it again so the new file takes effect. In the tests, what comes in front of the command (<code>TELEGRAM_BOT_TOKEN=123:falso</code>, <code>DONOS=111</code>) wins over <code>.env</code>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/07-sim-e-execucao/bot.py</pre>
@@ -1038,7 +1041,8 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
-    if any(w in palavras for w in ("mas", "antes", "primeiro", "depois", "espera")):
+    if any(w in palavras for w in ("mas", "antes", "primeiro", "depois", "espera",
+                                   "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
 
@@ -1334,7 +1338,8 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
-    if any(w in palavras for w in ("mas", "antes", "primeiro", "depois", "espera")):
+    if any(w in palavras for w in ("mas", "antes", "primeiro", "depois", "espera",
+                                   "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
 
@@ -1482,7 +1487,7 @@ PASSOU IA não apaga nem com ordem direta …
 PASSOU aceita rm dentro da área
 …
 PASSOU apagou depois do sim …
-…            (40 PASSOU lines in total)
+…            (44 PASSOU lines in total)
 TUDO OK</pre>
     <p><strong>To stop:</strong> before starting the service, stop the test bot and the fake Telegram (<kbd>Ctrl+C</kbd> in terminals 2 and 1). One instance only: with the service on, do not run <code>python3 bot.py</code> by hand (both would fight over the messages). To turn the service off: <code>systemctl --user stop telegram-vps-remoto</code> (and <code>disable</code> so it does not come back on boot).</p>
     <p>Next, the bot becomes a <strong>systemd service</strong>: the Linux program that starts other programs and keeps them running. It’s a service <strong>for your user</strong> (<code>--user</code>), with no <code>sudo</code>, that restarts on its own if it stops. First, check where <code>claude</code> is, because the service doesn’t read your <code>~/.bashrc</code>:</p>
@@ -1510,13 +1515,13 @@ WantedBy=default.target
 EOF
 systemctl --user daemon-reload
 systemctl --user enable --now telegram-vps-remoto
-loginctl enable-linger "$USER"
+loginctl show-user "$USER" -p Linger      <span class="c"># expected: Linger=yes (turned on as root in step 1)</span>
 systemctl --user is-active telegram-vps-remoto
 journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
     <span class="lbl">Expected output</span>
 <pre class="out">active
 … no ar · donos=1 · área=/home/&lt;you&gt;/kits/telegram-vps-remoto/area</pre>
-    <p>The <code>loginctl enable-linger</code> (“linger”) command keeps the service running after you disconnect from SSH. If it asks for a password or says you don’t have permission, run <code>sudo loginctl enable-linger "$USER"</code> once. If your bot is in a different folder from <code>~/kits/telegram-vps-remoto</code>, change the path in <code>WorkingDirectory=</code> and <code>ExecStart=</code> (<code>%h</code> is your home directory).</p>
+    <p>“Linger”, turned on as root in step 1, keeps the service running after you log out of SSH. If you see <code>Linger=no</code>, log in to the VPS as root and run <code>loginctl enable-linger maria</code> (with your user’s name). If your bot is in a different folder from <code>~/kits/telegram-vps-remoto</code>, change the path in <code>WorkingDirectory=</code> and <code>ExecStart=</code> (<code>%h</code> is your home directory).</p>
     <p class="gab">Files for this step: <a href="https://github.com/inematds/telegram-vps-passo-a-passo/tree/main/etapas/09-systemd-e-testes" target="_blank" rel="noopener">etapas/09-systemd-e-testes/</a></p>
     <p><strong>Final test, from your phone</strong> (with the service on and your real token). Recreate the test files on the VPS and send three messages to your bot:</p>
 <pre>mkdir -p area/logs &amp;&amp; for i in 1 2 3; do seq 1000 > area/logs/app-$i.log; done</pre>
@@ -1534,7 +1539,7 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
   <h2>Tested by someone who had never seen it before</h2>
   <p class="sub">It’s not enough for the author to say it works. A new agent followed the guide from scratch, and the test suite deliberately tries to break the safeguards.</p>
   <div class="grid g3">
-    <div class="card"><div class="big">40</div><h3>safeguard tests, all valid on your VPS</h3><p>Among them: an empty list, a fake <code>.env</code> inside the area and a bait with a fake secret outside it that never leak, deleting that turns into a proposal, 17 dangerous commands and options refused, 10 confirmations checked (6 refused), a trap setting that allows <code>rm</code>, and the full flow through the “yes”.</p></div>
+    <div class="card"><div class="big">44</div><h3>safeguard tests, all valid on your VPS</h3><p>Among them: an empty list, a fake <code>.env</code> inside the area and a bait with a fake secret outside it that never leak, deleting that turns into a proposal, 17 dangerous commands and options refused, 14 confirmations checked (10 refused), a trap setting that allows <code>rm</code>, and the full flow through the “yes”.</p></div>
     <div class="card"><div class="big">4</div><h3>rounds by a fresh agent, from scratch</h3><p>A fresh Claude Code (Sonnet) that had never seen the project built the bot from scratch with the fake Telegram. In round 1 it found a line order that broke step 6; the text was fixed. Rounds 3 and 4 used only this page: all 9 steps passed, with 40 PASSOU and TUDO OK.</p></div>
     <div class="card"><div class="big">1</div><h3>real loophole found and closed</h3><p>The original bot inherited Claude Code’s personal permissions. On a machine where <code>rm</code> was allowed, “delete the logs folder” deleted it. With the step 5 fix, the same request changes nothing.</p></div>
   </div>
