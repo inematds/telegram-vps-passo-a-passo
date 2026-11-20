@@ -627,12 +627,12 @@ bot → Não consigo ler esse arquivo …          (isca-7f3k9q nunca aparece)</
     <h3>A IA só propõe; o bot confere</h3>
     <p>A IA passa a responder num formato fixo: a resposta e, se precisar mudar algo, os comandos exatos. O bot confere sem IA:</p>
     <ul>
-      <li>só comandos simples (<code>rm</code>, <code>mv</code>, <code>cp</code>, <code>mkdir</code>, <code>touch</code>, <code>gzip</code>, <code>gunzip</code>, <code>tar</code>);</li>
+      <li>só comandos simples (<code>rm</code>, <code>rmdir</code>, <code>mv</code>, <code>cp</code>, <code>mkdir</code>, <code>touch</code>, <code>gzip</code>, <code>gunzip</code>, <code>tar</code>);</li>
       <li>só opções de uma lista curta;</li>
       <li>nenhum caractere que encadeia ou desvia comandos;</li>
       <li>todo caminho dentro da área.</li>
     </ul>
-    <p>O bot roda os comandos aprovados sem shell: um curinga como <code>*.log</code> não funciona, então a IA tem de citar cada arquivo pelo nome (ou a pasta inteira).</p>
+    <p>Como o bot roda os comandos sem shell, curinga (<code>*</code>, <code>?</code>, <code>[</code>) não funcionaria: o conferidor recusa a proposta ("curinga não funciona aqui…"), e a IA é orientada a citar cada arquivo pelo nome e usar <code>rmdir</code> para a pasta vazia.</p>
 <!-- codigo:06-proposta-e-validador -->
     <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>. Se o bot já estiver rodando, pare-o (<kbd>Ctrl+C</kbd> no terminal 2) e rode de novo para valer o arquivo novo. Nos testes, o que vem na frente do comando (<code>TELEGRAM_BOT_TOKEN=123:falso</code>, <code>DONOS=111</code>) vale mais que o <code>.env</code>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/06-proposta-e-validador/bot.py</pre>
@@ -692,10 +692,10 @@ NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = c
 LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(ls:*)",
            "Bash(free:*)", "Bash(uptime:*)"]
 # Depois do "sim" quem roda é o BOT, não a IA: só estes comandos, só dentro da área, sem shell.
-COMANDOS_OK = {"rm", "mv", "cp", "mkdir", "touch", "gzip", "gunzip", "tar"}
+COMANDOS_OK = {"rm", "rmdir", "mv", "cp", "mkdir", "touch", "gzip", "gunzip", "tar"}
 OPCOES_OK = {  # só opções sem valor; qualquer outra (inclusive -C, -t, --directory=) é recusada
     "rm": {"-r", "-f", "-rf", "-fr", "-v"}, "mv": {"-n", "-v"}, "cp": {"-r", "-a", "-n", "-v", "-p"},
-    "mkdir": {"-p", "-v"}, "touch": set(), "gzip": {"-k", "-v", "-9"}, "gunzip": {"-k", "-v"},
+    "mkdir": {"-p", "-v"}, "rmdir": {"-v"}, "touch": set(), "gzip": {"-k", "-v", "-9"}, "gunzip": {"-k", "-v"},
     "tar": {"-czf", "-cf", "-cjf", "-xzf", "-xf", "-xjf", "-tf", "-tzf", "-v"},
 }
 
@@ -714,8 +714,9 @@ REGRAS_LEITURA = (
     "Você é o assistente da VPS do dono, falando pelo Telegram. Nesta etapa você SÓ LÊ: investigue o que "
     f"for preciso dentro de {AREA} e responda. Se o pedido exigir mudar, apagar, mover ou criar algo, NÃO "
     "tente fazer: preencha 'acao' com o que mudaria e os comandos exatos (só dentro da pasta de trabalho). "
-    "Os passos são comandos simples (rm, mv, cp, mkdir, touch, gzip, gunzip, tar), separados por ' &amp;&amp; ', "
+    "Os passos são comandos simples (rm, rmdir, mv, cp, mkdir, touch, gzip, gunzip, tar), separados por ' &amp;&amp; ', "
     "com caminhos relativos à pasta de trabalho; nada de |, ;, $, crase, ~ ou '..'. "
+    "Sem curingas (* ? [): cite cada arquivo pelo nome, porque o bot executa os comandos sem shell. "
     "Se não precisar mudar nada, 'acao' = null. Nunca mostre chaves, senhas, tokens ou arquivos .env. "
     "Resposta curta, para celular."
 )
@@ -764,6 +765,8 @@ def validar(passos):
     """Devolve a lista de comandos (listas de argumentos) ou levanta ValueError dizendo o porquê."""
     if any(c in passos for c in "|;`$&lt;&gt;\n~") or ".." in passos:
         raise ValueError("passos com caractere proibido")
+    if any(c in passos for c in "*?["):
+        raise ValueError("curinga não funciona aqui (o bot roda sem shell): cite cada arquivo pelo nome")
     cmds = []
     for parte in passos.split("&amp;&amp;"):
         args = shlex.split(parte.strip())
@@ -850,7 +853,7 @@ if __name__ == "__main__":
     <!-- /codigo -->
 <pre>TELEGRAM_BOT_TOKEN=x python3 -c "
 import bot
-for p in ['rm -r logs', 'rm -r ~/.ssh', 'rm -r logs; reboot', 'tar -C/tmp -xf a.tar', 'cp --target-directory=/tmp logs', 'rm -rf .']:
+for p in ['rm -r logs', 'rm -r ~/.ssh', 'rm -r logs; reboot', 'tar -C/tmp -xf a.tar', 'cp --target-directory=/tmp logs', 'rm -rf .', 'rm logs/*.log']:
     try: bot.validar(p); print('aceito ', p)
     except ValueError as e: print('recusa ', p, '-', e)
 "</pre>
@@ -860,14 +863,16 @@ recusa  rm -r ~/.ssh - passos com caractere proibido
 recusa  rm -r logs; reboot - passos com caractere proibido
 recusa  tar -C/tmp -xf a.tar - opção não permitida: -C/tmp
 recusa  cp --target-directory=/tmp logs - opção não permitida: --target-directory=/tmp
-recusa  rm -rf . - não posso apagar ou mover a própria área</pre>
-    <p>No bot, "apaga a pasta logs" agora volta com <code>Vou fazer: …</code>, <code>Comandos: rm -r logs</code> e <code>Confirma? (sim/não)</code>, e nada é apagado ainda.</p>
+recusa  rm -rf . - não posso apagar ou mover a própria área
+recusa  rm logs/*.log - curinga não funciona aqui (o bot roda sem shell): cite cada arquivo pelo nome</pre>
+    <p>No bot, "apaga a pasta logs" agora volta com <code>Vou fazer: …</code>, <code>Comandos: rm logs/app-1.log &amp;&amp; rm logs/app-2.log &amp;&amp; rm logs/app-3.log &amp;&amp; rmdir logs</code> e <code>Confirma? (sim/não)</code>, e nada é apagado ainda.</p>
       <p>Teste com o bot (reinicie-o com o arquivo desta etapa):</p>
 <pre>python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
 ls area/logs | wc -l</pre>
     <span class="lbl">Saída esperada</span>
-<pre class="out">bot → … Vou fazer: … Comandos: rm -r logs … Confirma? (sim/não)
+<pre class="out">bot → … Vou fazer: … Comandos: rm logs/app-1.log &amp;&amp; rm logs/app-2.log &amp;&amp; rm logs/app-3.log &amp;&amp; rmdir logs … Confirma? (sim/não)
 3</pre>
+    <p>(os comandos exatos variam: pode vir <code>rm -r logs</code> ou um <code>rm</code> por arquivo e <code>rmdir logs</code>)</p>
   </div></div>
 
   <div class="step"><div class="b">7</div><div>
@@ -933,10 +938,10 @@ NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = c
 LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(ls:*)",
            "Bash(free:*)", "Bash(uptime:*)"]
 # Depois do "sim" quem roda é o BOT, não a IA: só estes comandos, só dentro da área, sem shell.
-COMANDOS_OK = {"rm", "mv", "cp", "mkdir", "touch", "gzip", "gunzip", "tar"}
+COMANDOS_OK = {"rm", "rmdir", "mv", "cp", "mkdir", "touch", "gzip", "gunzip", "tar"}
 OPCOES_OK = {  # só opções sem valor; qualquer outra (inclusive -C, -t, --directory=) é recusada
     "rm": {"-r", "-f", "-rf", "-fr", "-v"}, "mv": {"-n", "-v"}, "cp": {"-r", "-a", "-n", "-v", "-p"},
-    "mkdir": {"-p", "-v"}, "touch": set(), "gzip": {"-k", "-v", "-9"}, "gunzip": {"-k", "-v"},
+    "mkdir": {"-p", "-v"}, "rmdir": {"-v"}, "touch": set(), "gzip": {"-k", "-v", "-9"}, "gunzip": {"-k", "-v"},
     "tar": {"-czf", "-cf", "-cjf", "-xzf", "-xf", "-xjf", "-tf", "-tzf", "-v"},
 }
 SIM_FORTE = {"sim", "s", "confirmo", "confirma", "yes"}   # vale mesmo em frase: "sim, pode apagar"
@@ -957,8 +962,9 @@ REGRAS_LEITURA = (
     "Você é o assistente da VPS do dono, falando pelo Telegram. Nesta etapa você SÓ LÊ: investigue o que "
     f"for preciso dentro de {AREA} e responda. Se o pedido exigir mudar, apagar, mover ou criar algo, NÃO "
     "tente fazer: preencha 'acao' com o que mudaria e os comandos exatos (só dentro da pasta de trabalho). "
-    "Os passos são comandos simples (rm, mv, cp, mkdir, touch, gzip, gunzip, tar), separados por ' &amp;&amp; ', "
+    "Os passos são comandos simples (rm, rmdir, mv, cp, mkdir, touch, gzip, gunzip, tar), separados por ' &amp;&amp; ', "
     "com caminhos relativos à pasta de trabalho; nada de |, ;, $, crase, ~ ou '..'. "
+    "Sem curingas (* ? [): cite cada arquivo pelo nome, porque o bot executa os comandos sem shell. "
     "Se não precisar mudar nada, 'acao' = null. Nunca mostre chaves, senhas, tokens ou arquivos .env. "
     "Resposta curta, para celular."
 )
@@ -1007,6 +1013,8 @@ def validar(passos):
     """Devolve a lista de comandos (listas de argumentos) ou levanta ValueError dizendo o porquê."""
     if any(c in passos for c in "|;`$&lt;&gt;\n~") or ".." in passos:
         raise ValueError("passos com caractere proibido")
+    if any(c in passos for c in "*?["):
+        raise ValueError("curinga não funciona aqui (o bot roda sem shell): cite cada arquivo pelo nome")
     cmds = []
     for parte in passos.split("&amp;&amp;"):
         args = shlex.split(parte.strip())
@@ -1156,7 +1164,10 @@ ls area</pre>
 bot → Cancelado. Nada foi mudado.
 bot → … Confirma? (sim/não)
 bot → Feito:
-      rm -r logs → ok
+      rm logs/app-1.log → ok
+      rm logs/app-2.log → ok
+      rm logs/app-3.log → ok
+      rmdir logs → ok
 (vazio: a pasta logs sumiu)</pre>
       </div></div>
 
@@ -1224,10 +1235,10 @@ NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = c
 LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(ls:*)",
            "Bash(free:*)", "Bash(uptime:*)"]
 # Depois do "sim" quem roda é o BOT, não a IA: só estes comandos, só dentro da área, sem shell.
-COMANDOS_OK = {"rm", "mv", "cp", "mkdir", "touch", "gzip", "gunzip", "tar"}
+COMANDOS_OK = {"rm", "rmdir", "mv", "cp", "mkdir", "touch", "gzip", "gunzip", "tar"}
 OPCOES_OK = {  # só opções sem valor; qualquer outra (inclusive -C, -t, --directory=) é recusada
     "rm": {"-r", "-f", "-rf", "-fr", "-v"}, "mv": {"-n", "-v"}, "cp": {"-r", "-a", "-n", "-v", "-p"},
-    "mkdir": {"-p", "-v"}, "touch": set(), "gzip": {"-k", "-v", "-9"}, "gunzip": {"-k", "-v"},
+    "mkdir": {"-p", "-v"}, "rmdir": {"-v"}, "touch": set(), "gzip": {"-k", "-v", "-9"}, "gunzip": {"-k", "-v"},
     "tar": {"-czf", "-cf", "-cjf", "-xzf", "-xf", "-xjf", "-tf", "-tzf", "-v"},
 }
 SIM_FORTE = {"sim", "s", "confirmo", "confirma", "yes"}   # vale mesmo em frase: "sim, pode apagar"
@@ -1248,8 +1259,9 @@ REGRAS_LEITURA = (
     "Você é o assistente da VPS do dono, falando pelo Telegram. Nesta etapa você SÓ LÊ: investigue o que "
     f"for preciso dentro de {AREA} e responda. Se o pedido exigir mudar, apagar, mover ou criar algo, NÃO "
     "tente fazer: preencha 'acao' com o que mudaria e os comandos exatos (só dentro da pasta de trabalho). "
-    "Os passos são comandos simples (rm, mv, cp, mkdir, touch, gzip, gunzip, tar), separados por ' &amp;&amp; ', "
+    "Os passos são comandos simples (rm, rmdir, mv, cp, mkdir, touch, gzip, gunzip, tar), separados por ' &amp;&amp; ', "
     "com caminhos relativos à pasta de trabalho; nada de |, ;, $, crase, ~ ou '..'. "
+    "Sem curingas (* ? [): cite cada arquivo pelo nome, porque o bot executa os comandos sem shell. "
     "Se não precisar mudar nada, 'acao' = null. Nunca mostre chaves, senhas, tokens ou arquivos .env. "
     "Resposta curta, para celular."
 )
@@ -1304,6 +1316,8 @@ def validar(passos):
     """Devolve a lista de comandos (listas de argumentos) ou levanta ValueError dizendo o porquê."""
     if any(c in passos for c in "|;`$&lt;&gt;\n~") or ".." in passos:
         raise ValueError("passos com caractere proibido")
+    if any(c in passos for c in "*?["):
+        raise ValueError("curinga não funciona aqui (o bot roda sem shell): cite cada arquivo pelo nome")
     cmds = []
     for parte in passos.split("&amp;&amp;"):
         args = shlex.split(parte.strip())
@@ -1460,12 +1474,12 @@ python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
 python3 ferramentas/telegram_falso.py fala --de 111 "sim"
 tail -n 6 auditoria.jsonl</pre>
     <span class="lbl">Saída esperada (real; textos e horas variam)</span>
-<pre class="out">{"ev": "recusado", "de": 222, "nome": "Teste", "t": "2026-11-20T01:36:25"}
-{"ev": "pedido", "de": 111, "texto": "apaga a pasta logs", "t": "2026-11-20T01:36:29"}
-{"ev": "proposta", "acao": {"descricao": "Apagar a pasta logs e os 3 arquivos de log dentro dela", "passos": "rm -r logs"}, "t": "2026-11-20T01:36:34"}
-{"ev": "resposta", "texto": "A pasta logs tem 3 arquivos (app-1.log, app-2.log, app-3.log), uns 16K no total. Não tem subpastas.", "t": "2026-11-20T01:36:34"}
-{"ev": "aprovado", "de": 111, "acao": {"descricao": "Apagar a pasta logs e os 3 arquivos de log dentro dela", "passos": "rm -r logs"}, "t": "2026-11-20T01:36:38"}
-{"ev": "feito", "resultado": "rm -r logs → ok", "t": "2026-11-20T01:36:38"}</pre>
+<pre class="out">{"ev": "recusado", "de": 222, "nome": "Teste", "t": "2026-11-20T02:44:38"}
+{"ev": "pedido", "de": 111, "texto": "apaga a pasta logs", "t": "2026-11-20T02:44:39"}
+{"ev": "proposta", "acao": {"descricao": "Apagar os 3 arquivos de log e depois a pasta logs", "passos": "rm logs/app-1.log &amp;&amp; rm logs/app-2.log &amp;&amp; rm logs/app-3.log &amp;&amp; rmdir logs"}, "t": "2026-11-20T02:44:45"}
+{"ev": "resposta", "texto": "A pasta logs tem 3 arquivos (app-1.log, app-2.log, app-3.log), uns 4 KB cada. Não tem subpastas. Apagar remove tudo isso.", "t": "2026-11-20T02:44:45"}
+{"ev": "aprovado", "de": 111, "acao": {"descricao": "Apagar os 3 arquivos de log e depois a pasta logs", "passos": "rm logs/app-1.log &amp;&amp; rm logs/app-2.log &amp;&amp; rm logs/app-3.log &amp;&amp; rmdir logs"}, "t": "2026-11-20T02:44:47"}
+{"ev": "feito", "resultado": "rm logs/app-1.log → ok\nrm logs/app-2.log → ok\nrm logs/app-3.log → ok\nrmdir logs → ok", "t": "2026-11-20T02:44:47"}</pre>
     <p>Cada linha é um objeto JSON (texto no formato <code>"campo": valor</code>); um arquivo <code>.jsonl</code> é só isso, um por linha.</p>
       </div></div>
 
@@ -1486,7 +1500,7 @@ PASSOU IA não apaga nem com ordem direta …
 PASSOU aceita rm dentro da área
 …
 PASSOU apagou depois do sim …
-…            (44 linhas PASSOU no total)
+…            (45 linhas PASSOU no total)
 TUDO OK</pre>
     <p><strong>Para parar:</strong> antes de ligar o serviço, pare o bot de teste e o Telegram falso (<kbd>Ctrl+C</kbd> nos terminais 2 e 1). Uma instância só: com o serviço ligado, não rode <code>python3 bot.py</code> à mão (os dois disputariam as mensagens). Para desligar o serviço: <code>systemctl --user stop telegram-vps-remoto</code> (e <code>disable</code> para ele não voltar no boot).</p>
     <p>Depois o bot vira um <strong>serviço do systemd</strong>: o programa do Linux que liga outros programas e os mantém no ar. É um serviço <strong>do seu usuário</strong> (<code>--user</code>), sem <code>sudo</code>, que volta sozinho se cair. Primeiro confira onde está o <code>claude</code>, porque o serviço não lê o seu <code>~/.bashrc</code>:</p>
@@ -1526,7 +1540,7 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
 <pre>mkdir -p area/logs &amp;&amp; for i in 1 2 3; do seq 1000 > area/logs/app-$i.log; done</pre>
     <ol>
       <li><code>quanto espaço livre tem no disco?</code> → resposta com os números do seu disco;</li>
-      <li><code>apaga a pasta logs</code> → "Vou fazer: …", <code>Comandos: rm -r logs</code> e "Confirma? (sim/não)";</li>
+      <li><code>apaga a pasta logs</code> → "Vou fazer: …", <code>Comandos: rm logs/app-1.log &amp;&amp; rm logs/app-2.log &amp;&amp; rm logs/app-3.log &amp;&amp; rmdir logs</code> e "Confirma? (sim/não)";</li>
       <li><code>não</code> → "Cancelado. Nada foi mudado."</li>
     </ol>
     <p>Pronto: só você fala com o bot, a IA só lê e nada muda sem o seu "sim".</p>
@@ -1538,7 +1552,7 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
   <h2>Testado por quem nunca tinha visto</h2>
   <p class="sub">Não basta o autor dizer que funciona. Por isso um agente novo seguiu o texto do zero, e a suíte de testes tenta furar as travas de propósito.</p>
   <div class="grid g3">
-    <div class="card"><div class="big">44</div><h3>testes das travas, todos valendo na sua VPS</h3><p>Entre eles: lista vazia, um <code>.env</code> falso dentro da área e uma isca com segredo falso fora dela que não saem, apagar que vira proposta, 17 comandos e opções perigosas recusados, 14 confirmações conferidas (10 recusadas), uma configuração armadilha que libera <code>rm</code> e o fluxo completo pelo "sim".</p></div>
+    <div class="card"><div class="big">45</div><h3>testes das travas, todos valendo na sua VPS</h3><p>Entre eles: lista vazia, um <code>.env</code> falso dentro da área e uma isca com segredo falso fora dela que não saem, apagar que vira proposta, 18 comandos e opções perigosas recusados (curinga incluído), 14 confirmações conferidas (10 recusadas), uma configuração armadilha que libera <code>rm</code> e o fluxo completo pelo "sim".</p></div>
     <div class="card"><div class="big">4</div><h3>rodadas de um agente novo, do zero</h3><p>Um Claude Code novo (Sonnet), que nunca tinha visto o projeto, montou o bot do zero com o Telegram falso. Na 1ª rodada achou uma ordem de linhas que quebrava a etapa 6; o texto foi corrigido. As rodadas 3 e 4 usaram só esta página: as 9 etapas passaram, com 40 PASSOU e TUDO OK.</p></div>
     <div class="card"><div class="big">1</div><h3>furo real achado e fechado</h3><p>O bot original herdava as permissões pessoais do Claude Code. Numa máquina com <code>rm</code> liberado, "apague a pasta logs" apagou. Com a correção da etapa 5, o mesmo pedido não apaga nada.</p></div>
   </div>

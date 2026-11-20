@@ -69,7 +69,7 @@ def recusa(p):
 caso("aceita rm dentro da área", not recusa("rm -r logs"))
 caso("aceita cd <área> && rm", not recusa(f"cd {bot.AREA} && rm -r logs"))
 for p in ["rm -r ~/.ssh", "rm -r /etc", "rm -r ../bot.py", "rm -r logs; reboot", "rm -r logs | sh",
-          "curl x", "rm -rf .", f"rm -r {os.path.expanduser('~')}/.config", "sudo rm -r logs", "echo $HOME"]:
+          "curl x", "rm -rf .", f"rm -r {os.path.expanduser('~')}/.config", "sudo rm -r logs", "echo $HOME", "rm logs/*.log"]:
     caso(f"recusa: {p}", recusa(p))
 for p in ["cp --target-directory=/tmp logs", "tar --directory=/tmp -xf a.tar", "tar -C/tmp -xf a.tar",
           "mv -t/tmp logs", "cp -t /tmp logs", "rm --no-preserve-root -rf logs"]:

@@ -439,12 +439,12 @@ Resultado esperado: la primera respuesta incluye cifras del disco (p. ej., «Que
 
 La IA sigue leyendo, pero ahora responde en un **formato fijo** (JSON): la respuesta y, si hace falta cambiar algo, la acción con los comandos exactos. El bot **verifica** esos comandos con reglas simples, sin IA:
 
-- solo `rm`, `mv`, `cp`, `mkdir`, `touch`, `gzip`, `gunzip`, `tar`;
+- solo `rm`, `rmdir`, `mv`, `cp`, `mkdir`, `touch`, `gzip`, `gunzip`, `tar`;
 - solo opciones de la lista breve de cada comando (nada de `-C`, `-t`, `--directory=`, `--target-directory=`, que permitirían salir);
 - sin `|`, `;`, `$`, acento grave, `<`, `>`, `~` ni `..`; todas las rutas (incluso con atajos) deben estar dentro de `area/`;
 - nunca borrar ni mover la propia área.
 
-El bot ejecuta los comandos aprobados sin shell: un comodín como `*.log` no funciona, así que la IA tiene que nombrar cada archivo (o la carpeta entera).
+Como el bot ejecuta los comandos sin shell, un comodín (`*`, `?`, `[`) no funcionaría: el verificador rechaza la propuesta («curinga não funciona aqui…», o sea, «aquí los comodines no funcionan»), y a la IA se le indica nombrar cada archivo y usar `rmdir` para la carpeta vacía.
 
 En la línea del `import`, añade `re` y `shlex`:
 
@@ -456,10 +456,10 @@ Después de `LEITURA = [...]`, añade:
 
 ```python
 # Depois do "sim" quem roda é o BOT, não a IA: só estes comandos, só dentro da área, sem shell.
-COMANDOS_OK = {"rm", "mv", "cp", "mkdir", "touch", "gzip", "gunzip", "tar"}
+COMANDOS_OK = {"rm", "rmdir", "mv", "cp", "mkdir", "touch", "gzip", "gunzip", "tar"}
 OPCOES_OK = {  # só opções sem valor; qualquer outra (inclusive -C, -t, --directory=) é recusada
     "rm": {"-r", "-f", "-rf", "-fr", "-v"}, "mv": {"-n", "-v"}, "cp": {"-r", "-a", "-n", "-v", "-p"},
-    "mkdir": {"-p", "-v"}, "touch": set(), "gzip": {"-k", "-v", "-9"}, "gunzip": {"-k", "-v"},
+    "mkdir": {"-p", "-v"}, "rmdir": {"-v"}, "touch": set(), "gzip": {"-k", "-v", "-9"}, "gunzip": {"-k", "-v"},
     "tar": {"-czf", "-cf", "-cjf", "-xzf", "-xf", "-xjf", "-tf", "-tzf", "-v"},
 }
 
@@ -478,8 +478,9 @@ REGRAS_LEITURA = (
     "Você é o assistente da VPS do dono, falando pelo Telegram. Nesta etapa você SÓ LÊ: investigue o que "
     f"for preciso dentro de {AREA} e responda. Se o pedido exigir mudar, apagar, mover ou criar algo, NÃO "
     "tente fazer: preencha 'acao' com o que mudaria e os comandos exatos (só dentro da pasta de trabalho). "
-    "Os passos são comandos simples (rm, mv, cp, mkdir, touch, gzip, gunzip, tar), separados por ' && ', "
+    "Os passos são comandos simples (rm, rmdir, mv, cp, mkdir, touch, gzip, gunzip, tar), separados por ' && ', "
     "com caminhos relativos à pasta de trabalho; nada de |, ;, $, crase, ~ ou '..'. "
+    "Sem curingas (* ? [): cite cada arquivo pelo nome, porque o bot executa os comandos sem shell. "
     "Se não precisar mudar nada, 'acao' = null. Nunca mostre chaves, senhas, tokens ou arquivos .env. "
     "Resposta curta, para celular."
 )
@@ -515,6 +516,8 @@ def validar(passos):
     """Devolve a lista de comandos (listas de argumentos) ou levanta ValueError dizendo o porquê."""
     if any(c in passos for c in "|;`$<>\n~") or ".." in passos:
         raise ValueError("passos com caractere proibido")
+    if any(c in passos for c in "*?["):
+        raise ValueError("curinga não funciona aqui (o bot roda sem shell): cite cada arquivo pelo nome")
     cmds = []
     for parte in passos.split("&&"):
         args = shlex.split(parte.strip())
@@ -573,7 +576,7 @@ En `tratar`, reemplaza las dos últimas líneas (`sendChatAction` y `enviar(chat
 ```bash
 TELEGRAM_BOT_TOKEN=x python3 -c "
 import bot
-for p in ['rm -r logs', 'rm -r ~/.ssh', 'rm -r logs; reboot', 'tar -C/tmp -xf a.tar', 'cp --target-directory=/tmp logs', 'rm -rf .']:
+for p in ['rm -r logs', 'rm -r ~/.ssh', 'rm -r logs; reboot', 'tar -C/tmp -xf a.tar', 'cp --target-directory=/tmp logs', 'rm -rf .', 'rm logs/*.log']:
     try: bot.validar(p); print('aceito ', p)
     except ValueError as e: print('recusa ', p, '-', e)
 "
@@ -588,6 +591,7 @@ recusa  rm -r logs; reboot - passos com caractere proibido
 recusa  tar -C/tmp -xf a.tar - opção não permitida: -C/tmp
 recusa  cp --target-directory=/tmp logs - opção não permitida: --target-directory=/tmp
 recusa  rm -rf . - não posso apagar ou mover a própria área
+recusa  rm logs/*.log - curinga não funciona aqui (o bot roda sem shell): cite cada arquivo pelo nome
 ```
 
 **Prueba con el bot** (reinicia el bot en el terminal 2):
@@ -597,7 +601,7 @@ python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
 ls area/logs | wc -l
 ```
 
-Resultado esperado: la respuesta termina con `Vou fazer: ...`, `Comandos: rm -r logs` y `Confirma? (sim/não)`; y `3` (no se borró nada).
+Resultado esperado: la respuesta termina con `Vou fazer: ...`, `Comandos: rm logs/app-1.log && rm logs/app-2.log && rm logs/app-3.log && rmdir logs` y `Confirma? (sim/não)`; y `3` (no se borró nada).
 
 ---
 
@@ -720,7 +724,7 @@ python3 ferramentas/telegram_falso.py fala --de 111 "sim"
 ls area
 ```
 
-Resultado esperado: `Confirma? (sim/não)` → `Cancelado. Nada foi mudado.` → `3` → `Confirma? (sim/não)` → `Feito:` y `rm -r logs → ok` → `ls area` sin `logs` (vacío: la carpeta logs desapareció).
+Resultado esperado: `Confirma? (sim/não)` → `Cancelado. Nada foi mudado.` → `3` → `Confirma? (sim/não)` → `Feito:` y `rmdir logs → ok` (un `rm` por archivo y el `rmdir` al final) → `ls area` sin `logs` (vacío: la carpeta logs desapareció).
 
 ---
 
@@ -779,12 +783,12 @@ Y el orden de las funciones en el archivo es: `carregar_env` → `tg` → `envia
 Resultado esperado (los textos y las horas varían; esta es una salida real):
 
 ```
-{"ev": "recusado", "de": 222, "nome": "Teste", "t": "2026-11-20T01:36:25"}
-{"ev": "pedido", "de": 111, "texto": "apaga a pasta logs", "t": "2026-11-20T01:36:29"}
-{"ev": "proposta", "acao": {"descricao": "Apagar a pasta logs e os 3 arquivos de log dentro dela", "passos": "rm -r logs"}, "t": "2026-11-20T01:36:34"}
-{"ev": "resposta", "texto": "A pasta logs tem 3 arquivos (app-1.log, app-2.log, app-3.log), uns 16K no total. Não tem subpastas.", "t": "2026-11-20T01:36:34"}
-{"ev": "aprovado", "de": 111, "acao": {"descricao": "Apagar a pasta logs e os 3 arquivos de log dentro dela", "passos": "rm -r logs"}, "t": "2026-11-20T01:36:38"}
-{"ev": "feito", "resultado": "rm -r logs → ok", "t": "2026-11-20T01:36:38"}
+{"ev": "recusado", "de": 222, "nome": "Teste", "t": "2026-11-20T02:44:38"}
+{"ev": "pedido", "de": 111, "texto": "apaga a pasta logs", "t": "2026-11-20T02:44:39"}
+{"ev": "proposta", "acao": {"descricao": "Apagar os 3 arquivos de log e depois a pasta logs", "passos": "rm logs/app-1.log && rm logs/app-2.log && rm logs/app-3.log && rmdir logs"}, "t": "2026-11-20T02:44:45"}
+{"ev": "resposta", "texto": "A pasta logs tem 3 arquivos (app-1.log, app-2.log, app-3.log), uns 4 KB cada. Não tem subpastas. Apagar remove tudo isso.", "t": "2026-11-20T02:44:45"}
+{"ev": "aprovado", "de": 111, "acao": {"descricao": "Apagar os 3 arquivos de log e depois a pasta logs", "passos": "rm logs/app-1.log && rm logs/app-2.log && rm logs/app-3.log && rmdir logs"}, "t": "2026-11-20T02:44:47"}
+{"ev": "feito", "resultado": "rm logs/app-1.log → ok\nrm logs/app-2.log → ok\nrm logs/app-3.log → ok\nrmdir logs → ok", "t": "2026-11-20T02:44:47"}
 ```
 
 Cada línea es un objeto JSON (texto con `"campo": valor`); un archivo `.jsonl` solo contiene eso, una línea por objeto, fácil de leer y filtrar.
@@ -802,7 +806,7 @@ python3 testes/testar_travas.py
 
 La prueba importa tu `bot.py` y usa los nombres del texto (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): si cambiaste alguno, falla. Usa un área y una auditoría **temporales** (no modifica el bot en marcha) y prepara dos trampas a propósito: un `settings.json` que permite `rm` (el bot debe ignorarlo) y un archivo señuelo con un secreto falso **fuera** del área (la IA no puede mostrar su contenido). Resultado esperado: todas las líneas `PASSOU ...` y, al final, `TUDO OK`.
 
-> Las 44 pruebas valen en tu VPS: el `.env` falso y el cebo con un secreto falso están en una carpeta temporal que crea la propia prueba. Salida esperada: 44 líneas `PASSOU` y `TUDO OK`.
+> Las 45 pruebas valen en tu VPS: el `.env` falso y el cebo con un secreto falso están en una carpeta temporal que crea la propia prueba. Salida esperada: 45 líneas `PASSOU` y `TUDO OK`.
 
 Detén el bot de prueba (Ctrl+C en los terminales 1 y 2). Ahora el bot se convierte en un **servicio de systemd** (el programa de Linux que inicia y mantiene otros programas en funcionamiento): vuelve a iniciarse si falla y cuando se reinicia la VPS. Es un servicio **de tu usuario** (`--user`), sin `sudo`.
 
@@ -855,7 +859,7 @@ Resultado esperado: `active` y una línea `no ar · donos=1 · área=/home/<tu u
 mkdir -p area/logs && for i in 1 2 3; do seq 1000 > area/logs/app-$i.log; done
 ```
 
-Y envía a tu bot: `quanto espaço livre tem no disco?` («¿cuánto espacio libre hay en el disco?») → respuesta con los números de tu disco. `apaga a pasta logs` («borra la carpeta logs») → «Vou fazer: …», `Comandos: rm -r logs` y `Confirma? (sim/não)`. Responde `não` → «Cancelado. Nada foi mudado.» («Cancelado. No se cambió nada.»). Listo: el bot está encendido, solo tú hablas con él, la IA solo lee y nada cambia sin tu «sí».
+Y envía a tu bot: `quanto espaço livre tem no disco?` («¿cuánto espacio libre hay en el disco?») → respuesta con los números de tu disco. `apaga a pasta logs` («borra la carpeta logs») → «Vou fazer: …», `Comandos: rm logs/app-1.log && rm logs/app-2.log && rm logs/app-3.log && rmdir logs` y `Confirma? (sim/não)`. Responde `não` → «Cancelado. Nada foi mudado.» («Cancelado. No se cambió nada.»). Listo: el bot está encendido, solo tú hablas con él, la IA solo lee y nada cambia sin tu «sí».
 
 Una sola instancia: no ejecutes `python3 bot.py` manualmente mientras el servicio está activo (ambos competirían por los mensajes). Para detenerlo: `systemctl --user stop telegram-vps-remoto`.
 
