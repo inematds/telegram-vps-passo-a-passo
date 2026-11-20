@@ -230,7 +230,7 @@ ok</pre>
     <p>No Telegram, fale com o <strong>@BotFather</strong>, mande <code>/newbot</code> e guarde o token num <code>.env</code> que só você lê. O token é a senha do bot: nunca vai para git, print ou vídeo. O primeiro <code>bot.py</code> só se apresenta ao Telegram.</p>
 <p><strong>Terminais:</strong> cada "terminal" é uma janela (ou aba) com a sua própria conexão SSH na VPS. Para abrir outro, abra uma janela nova e entre de novo por SSH; cada terminal começa com <code>cd ~/kits/telegram-vps-remoto</code>. O <code>cat &gt; .env &lt;&lt;'EOF' … EOF</code> (heredoc) grava no arquivo tudo o que está entre as duas linhas.</p>
     <!-- codigo:02-token-e-env -->
-    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>.</p>
+    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>. Se o bot já estiver rodando, pare-o (<kbd>Ctrl+C</kbd> no terminal 2) e rode de novo para valer o arquivo novo. Nos testes, o que vem na frente do comando (<code>TELEGRAM_BOT_TOKEN=123:falso</code>, <code>DONOS=111</code>) vale mais que o <code>.env</code>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/02-token-e-env/bot.py</pre>
     <details class="cod"><summary>Código desta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Etapa 2 — o bot lê o token do .env e se apresenta ao Telegram (getMe). Ainda não conversa."""
@@ -288,7 +288,7 @@ TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso python3 bot.py</
     <h3>O bot ouve e responde (eco)</h3>
     <p>O bot pergunta ao Telegram "tem mensagem nova?" e espera até 50 segundos (long polling). Não abre nenhuma porta na VPS. Por enquanto ele só devolve o que você escreveu.</p>
 <!-- codigo:03-eco -->
-    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>.</p>
+    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>. Se o bot já estiver rodando, pare-o (<kbd>Ctrl+C</kbd> no terminal 2) e rode de novo para valer o arquivo novo. Nos testes, o que vem na frente do comando (<code>TELEGRAM_BOT_TOKEN=123:falso</code>, <code>DONOS=111</code>) vale mais que o <code>.env</code>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/03-eco/bot.py</pre>
     <details class="cod"><summary>Código desta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Etapa 3 — o bot fica ouvindo (long polling) e devolve o que você escreveu. Sem porta aberta na VPS."""
@@ -364,7 +364,7 @@ bot → Você disse: oi</pre>
     <h3>Só o dono fala com o bot</h3>
     <p>Qualquer pessoa pode achar o seu bot. A lista <code>DONOS</code> fecha a porta: lista vazia não deixa ninguém entrar, e o bot mostra no terminal o número de quem tentou.</p>
 <!-- codigo:04-donos -->
-    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>.</p>
+    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>. Se o bot já estiver rodando, pare-o (<kbd>Ctrl+C</kbd> no terminal 2) e rode de novo para valer o arquivo novo. Nos testes, o que vem na frente do comando (<code>TELEGRAM_BOT_TOKEN=123:falso</code>, <code>DONOS=111</code>) vale mais que o <code>.env</code>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/04-donos/bot.py</pre>
     <details class="cod"><summary>Código desta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Etapa 4 — só os DONOS falam com o bot. Lista vazia = ninguém; o bot anota o ID de quem tentou."""
@@ -466,7 +466,7 @@ bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer coisa eu perg
       <li>tudo roda dentro de <code>area/</code>.</li>
     </ul>
 <!-- codigo:05-leitura -->
-    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>.</p>
+    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>. Se o bot já estiver rodando, pare-o (<kbd>Ctrl+C</kbd> no terminal 2) e rode de novo para valer o arquivo novo. Nos testes, o que vem na frente do comando (<code>TELEGRAM_BOT_TOKEN=123:falso</code>, <code>DONOS=111</code>) vale mais que o <code>.env</code>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/05-leitura/bot.py</pre>
     <details class="cod"><summary>Código desta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Etapa 5 — a mensagem do dono vai para o Claude Code (assinatura), SÓ DE LEITURA e preso na pasta de trabalho.
@@ -618,7 +618,7 @@ bot → Não consigo ler esse arquivo …          (isca-7f3k9q nunca aparece)</
       <li>todo caminho dentro da área.</li>
     </ul>
 <!-- codigo:06-proposta-e-validador -->
-    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>.</p>
+    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>. Se o bot já estiver rodando, pare-o (<kbd>Ctrl+C</kbd> no terminal 2) e rode de novo para valer o arquivo novo. Nos testes, o que vem na frente do comando (<code>TELEGRAM_BOT_TOKEN=123:falso</code>, <code>DONOS=111</code>) vale mais que o <code>.env</code>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/06-proposta-e-validador/bot.py</pre>
     <details class="cod"><summary>Código desta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Etapa 6 — Telegram VPS remoto — você pede pelo Telegram, o Claude Code trabalha na sua VPS.
@@ -850,7 +850,7 @@ recusa  rm -rf . - não posso apagar ou mover a própria área</pre>
     <h3>Depois do "sim", quem executa é o bot</h3>
     <p>Só confirmam <code>sim</code>, <code>s</code>, <code>confirmo</code>, <code>confirma</code>, <code>yes</code> (mesmo em frase, como "sim, pode apagar") ou <code>pode</code>, <code>ok</code>, <code>manda</code>, <code>faz</code> sozinhos. Mensagem com "?" nunca confirma ("pode listar antes?" não apaga nada), e nem frase com "mas", "antes", "primeiro", "depois" ou "espera": "sim, mas antes faz backup" cancela, e você pede de novo. O pedido vale 10 minutos, e um pacote <code>.tar</code> é conferido antes de ser aberto.</p>
 <!-- codigo:07-sim-e-execucao -->
-    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>.</p>
+    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>. Se o bot já estiver rodando, pare-o (<kbd>Ctrl+C</kbd> no terminal 2) e rode de novo para valer o arquivo novo. Nos testes, o que vem na frente do comando (<code>TELEGRAM_BOT_TOKEN=123:falso</code>, <code>DONOS=111</code>) vale mais que o <code>.env</code>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/07-sim-e-execucao/bot.py</pre>
     <details class="cod"><summary>Código desta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Etapa 7 — Telegram VPS remoto — você pede pelo Telegram, o Claude Code trabalha na sua VPS.
@@ -1136,7 +1136,7 @@ bot → Feito:
     <h3>Tudo anotado</h3>
     <p>Cada passo vira uma linha em <code>auditoria.jsonl</code>: quem pediu, o que a IA propôs, o que foi aprovado, o resultado, quem foi recusado e os erros. O token nunca entra.</p>
 <!-- codigo:08-auditoria -->
-    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>.</p>
+    <p class="gab"><strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>. Se o bot já estiver rodando, pare-o (<kbd>Ctrl+C</kbd> no terminal 2) e rode de novo para valer o arquivo novo. Nos testes, o que vem na frente do comando (<code>TELEGRAM_BOT_TOKEN=123:falso</code>, <code>DONOS=111</code>) vale mais que o <code>.env</code>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/08-auditoria/bot.py</pre>
     <details class="cod"><summary>Código desta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Telegram VPS remoto — você pede pelo Telegram, o Claude Code trabalha na sua VPS.
