@@ -55,7 +55,7 @@ Quién lo hace: 🧠 tú (en la VPS) · ⚙️ script/servicio · 🤖 Claude Co
 |---|---|
 | `PASSO-A-PASSO.es.md` | el texto de las 9 etapas, con el código que se agrega en cada una |
 | `etapas/NN-*/bot.py` | el `bot.py` completo al final de cada etapa |
-| `etapas/09-systemd-e-testes/testes/testar_travas.py` | pruebas de las barreras (7 llamadas breves de Claude Code) |
+| `etapas/09-systemd-e-testes/testes/testar_travas.py` | pruebas de las barreras (8 llamadas breves de Claude Code) |
 | `etapas/09-systemd-e-testes/systemd/telegram-vps-remoto.service` | unidad systemd de usuario |
 | `ferramentas/telegram_falso.py` | imita `getMe`, `getUpdates`, `sendMessage`, `sendChatAction`; `fala` envía un mensaje como alguien |
 | `validacao/` | informes del agente nuevo que siguió el texto desde cero |
@@ -69,7 +69,7 @@ Quién lo hace: 🧠 tú (en la VPS) · ⚙️ script/servicio · 🤖 Claude Co
 5. Solo confirman `sim`/`s`/`confirmo`/`confirma`/`yes` (o `pode`/`ok`/`manda`/`faz` por sí solas); si hay un `?`, nunca, ni tampoco con `mas`/`antes`/`primeiro`/`depois`/`espera` («sim, mas antes faz backup» cancela), ni con negación (`não`/`no`/`not`/`cancela`/`nunca`/`pare`/`para`: «sim, não apaga» cancela). Tiene una validez de 10 min. Quien ejecuta es el bot, sin shell. `tar -x` se muestra antes (rechaza `/`, `..`, enlaces).
 6. `auditoria.jsonl` guarda cada evento, sin el token. Ninguna clave `ANTHROPIC_*`/`OPENAI_*`/`OPENROUTER_*`/`TELEGRAM_*` se envía al proceso de Claude.
 
-**Pruebas:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` (7 llamadas breves de Claude Code) usa un área y una auditoría temporales, coloca un `settings.json` trampa que permite `rm` y un señuelo con un secreto falso fuera del área; son 45 pruebas y la salida es `TUDO OK`. Todas valen en tu VPS: la prueba de las claves usa un `.env` falso dentro del área temporal.
+**Pruebas:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` (8 llamadas breves de Claude Code) usa un área y una auditoría temporales, coloca un `settings.json` trampa que permite `rm` y un señuelo con un secreto falso fuera del área; son 50 pruebas y la salida es `TUDO OK`. Todas valen en tu VPS: la prueba de las claves usa un `.env` falso dentro del área temporal.
 
 **Prueba:** la validación está en [`validacao/`](validacao/): un agente nuevo (Claude Code, modelo Sonnet) recibió solo el texto, montó el bot desde cero con el Telegram falso y ejecutó las pruebas.
 

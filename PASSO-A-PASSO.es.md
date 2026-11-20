@@ -2,7 +2,7 @@
 
 Vas a crear, desde cero y en tu VPS, un bot de Telegram que recibe tus pedidos («¿cuánto espacio libre hay en el disco?», «borra la carpeta logs») y se los pasa a **Claude Code con tu suscripción**.
 
-> El bot responde en portugués (así está escrito su código). Los comentarios del código también están en portugués; la explicación alrededor está en español.
+> El bot responde en el idioma en que le escribes; solo sus mensajes fijos («Este bot é privado.», «Confirma? (sim/não)») están en portugués, y «sí»/«yes» confirman igual que «sim». Los comentarios del código también están en portugués; la explicación alrededor está en español.
 
 Las protecciones están en el **código**, no en el pedido:
 
@@ -466,7 +466,7 @@ OPCOES_OK = {  # só opções sem valor; qualquer outra (inclusive -C, -t, --dir
 ESQUEMA = json.dumps({
     "type": "object",
     "properties": {
-        "resposta": {"type": "string", "description": "o que você descobriu, em português simples, curto"},
+        "resposta": {"type": "string", "description": "o que você descobriu, em linguagem simples, curto, na língua do dono"},
         "acao": {"type": ["object", "null"], "properties": {
             "descricao": {"type": "string", "description": "o que vai mudar, em uma frase"},
             "passos": {"type": "string", "description": "comandos exatos que serão rodados"}},
@@ -482,7 +482,7 @@ REGRAS_LEITURA = (
     "com caminhos relativos à pasta de trabalho; nada de |, ;, $, crase, ~ ou '..'. "
     "Sem curingas (* ? [): cite cada arquivo pelo nome, porque o bot executa os comandos sem shell. "
     "Se não precisar mudar nada, 'acao' = null. Nunca mostre chaves, senhas, tokens ou arquivos .env. "
-    "Resposta curta, para celular."
+    "Resposta curta, para celular, na mesma língua em que o dono escreveu."
 )
 ```
 
@@ -623,7 +623,7 @@ PRAZO_OK = int(os.environ.get("PRAZO_OK_S", "600"))   # pedido pendente vale 10 
 Después de `OPCOES_OK = {...}`, añade:
 
 ```python
-SIM_FORTE = {"sim", "s", "confirmo", "confirma", "yes"}   # vale mesmo em frase: "sim, pode apagar"
+SIM_FORTE = {"sim", "s", "confirmo", "confirma", "yes", "y", "confirm", "si", "sí", "confirmar"}   # vale mesmo em frase: "sim, pode apagar"
 SIM_SOZINHO = {"pode", "ok", "manda", "faz"}              # só vale como a mensagem inteira
 ```
 
@@ -637,7 +637,7 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
-    if any(w in palavras for w in ("mas", "antes", "primeiro", "depois", "espera",
+    if any(w in palavras for w in ("mas", "pero", "but", "antes", "primeiro", "depois", "espera",
                                    "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
@@ -797,7 +797,7 @@ Cada línea es un objeto JSON (texto con `"campo": valor`); un archivo `.jsonl` 
 
 ## Etapa 9 — Pruebas de las protecciones y bot funcionando (systemd)
 
-Descarga la prueba de las protecciones y ejecútala (consume 7 llamadas cortas a Claude Code; tarda de medio minuto a unos 4 minutos):
+Descarga la prueba de las protecciones y ejecútala (consume 8 llamadas cortas a Claude Code; tarda de medio minuto a unos 4 minutos):
 
 ```bash
 curl -fsSLo testes/testar_travas.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/09-systemd-e-testes/testes/testar_travas.py
@@ -808,7 +808,7 @@ Borra también el cebo de la etapa 5, que ya no necesita quedarse en la VPS: `rm
 
 La prueba importa tu `bot.py` y usa los nombres del texto (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): si cambiaste alguno, falla. Usa un área y una auditoría **temporales** (no modifica el bot en marcha) y prepara dos trampas a propósito: un `settings.json` que permite `rm` (el bot debe ignorarlo) y un archivo señuelo con un secreto falso **fuera** del área (la IA no puede mostrar su contenido). Resultado esperado: todas las líneas `PASSOU ...` y, al final, `TUDO OK`.
 
-> Las 45 pruebas valen en tu VPS: el `.env` falso y el cebo con un secreto falso están en una carpeta temporal que crea la propia prueba. Salida esperada: 45 líneas `PASSOU` y `TUDO OK`.
+> Las 50 pruebas valen en tu VPS: el `.env` falso y el cebo con un secreto falso están en una carpeta temporal que crea la propia prueba. Salida esperada: 50 líneas `PASSOU` y `TUDO OK`.
 
 Detén el bot de prueba (Ctrl+C en los terminales 1 y 2). Ahora el bot se convierte en un **servicio de systemd** (el programa de Linux que inicia y mantiene otros programas en funcionamiento): vuelve a iniciarse si falla y cuando se reinicia la VPS. Es un servicio **de tu usuario** (`--user`), sin `sudo`.
 

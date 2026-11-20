@@ -64,7 +64,7 @@ OPCOES_OK = {  # só opções sem valor; qualquer outra (inclusive -C, -t, --dir
 ESQUEMA = json.dumps({
     "type": "object",
     "properties": {
-        "resposta": {"type": "string", "description": "o que você descobriu, em português simples, curto"},
+        "resposta": {"type": "string", "description": "o que você descobriu, em linguagem simples, curto, na língua do dono"},
         "acao": {"type": ["object", "null"], "properties": {
             "descricao": {"type": "string", "description": "o que vai mudar, em uma frase"},
             "passos": {"type": "string", "description": "comandos exatos que serão rodados"}},
@@ -80,7 +80,7 @@ REGRAS_LEITURA = (
     "com caminhos relativos à pasta de trabalho; nada de |, ;, $, crase, ~ ou '..'. "
     "Sem curingas (* ? [): cite cada arquivo pelo nome, porque o bot executa os comandos sem shell. "
     "Se não precisar mudar nada, 'acao' = null. Nunca mostre chaves, senhas, tokens ou arquivos .env. "
-    "Resposta curta, para celular."
+    "Resposta curta, para celular, na mesma língua em que o dono escreveu."
 )
 
 

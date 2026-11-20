@@ -462,7 +462,7 @@ OPCOES_OK = {  # só opções sem valor; qualquer outra (inclusive -C, -t, --dir
 ESQUEMA = json.dumps({
     "type": "object",
     "properties": {
-        "resposta": {"type": "string", "description": "o que você descobriu, em português simples, curto"},
+        "resposta": {"type": "string", "description": "o que você descobriu, em linguagem simples, curto, na língua do dono"},
         "acao": {"type": ["object", "null"], "properties": {
             "descricao": {"type": "string", "description": "o que vai mudar, em uma frase"},
             "passos": {"type": "string", "description": "comandos exatos que serão rodados"}},
@@ -478,7 +478,7 @@ REGRAS_LEITURA = (
     "com caminhos relativos à pasta de trabalho; nada de |, ;, $, crase, ~ ou '..'. "
     "Sem curingas (* ? [): cite cada arquivo pelo nome, porque o bot executa os comandos sem shell. "
     "Se não precisar mudar nada, 'acao' = null. Nunca mostre chaves, senhas, tokens ou arquivos .env. "
-    "Resposta curta, para celular."
+    "Resposta curta, para celular, na mesma língua em que o dono escreveu."
 )
 ```
 
@@ -619,7 +619,7 @@ PRAZO_OK = int(os.environ.get("PRAZO_OK_S", "600"))   # pedido pendente vale 10 
 Depois de `OPCOES_OK = {...}`, acrescente:
 
 ```python
-SIM_FORTE = {"sim", "s", "confirmo", "confirma", "yes"}   # vale mesmo em frase: "sim, pode apagar"
+SIM_FORTE = {"sim", "s", "confirmo", "confirma", "yes", "y", "confirm", "si", "sí", "confirmar"}   # vale mesmo em frase: "sim, pode apagar"
 SIM_SOZINHO = {"pode", "ok", "manda", "faz"}              # só vale como a mensagem inteira
 ```
 
@@ -633,7 +633,7 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
-    if any(w in palavras for w in ("mas", "antes", "primeiro", "depois", "espera",
+    if any(w in palavras for w in ("mas", "pero", "but", "antes", "primeiro", "depois", "espera",
                                    "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
@@ -793,7 +793,7 @@ Cada linha é um objeto JSON (texto com `"campo": valor`); um arquivo `.jsonl` �
 
 ## Etapa 9 — Testes das travas e o bot ligado de vez (systemd)
 
-Baixe o teste das travas e rode (gasta 7 chamadas curtas do Claude Code; leva de meio minuto a uns 4 minutos):
+Baixe o teste das travas e rode (gasta 8 chamadas curtas do Claude Code; leva de meio minuto a uns 4 minutos):
 
 ```bash
 curl -fsSLo testes/testar_travas.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/09-systemd-e-testes/testes/testar_travas.py
@@ -804,7 +804,7 @@ Apague também a isca da etapa 5, que não precisa mais ficar na VPS: `rm -r for
 
 O teste importa o seu `bot.py` e usa os nomes do texto (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): se você renomeou algo, ele quebra. Ele usa uma área e uma auditoria **temporárias** (não mexe no bot no ar) e monta duas armadilhas de propósito: um `settings.json` que libera `rm` (o bot tem de ignorar) e um arquivo-isca com um segredo falso **fora** da área (a IA não pode mostrar o conteúdo). Saída esperada: todas as linhas `PASSOU ...` e, no fim, `TUDO OK`.
 
-> Todos os 45 testes valem na sua VPS: o `.env` falso e a isca com segredo falso ficam numa pasta temporária criada pelo próprio teste. Saída esperada: 45 linhas `PASSOU` e `TUDO OK`.
+> Todos os 50 testes valem na sua VPS: o `.env` falso e a isca com segredo falso ficam numa pasta temporária criada pelo próprio teste. Saída esperada: 50 linhas `PASSOU` e `TUDO OK`.
 
 Pare o bot de teste (Ctrl+C nos terminais 1 e 2). Agora o bot vira um **serviço do systemd** (o programa do Linux que liga e mantém outros programas no ar): ele volta sozinho se cair e quando a VPS reinicia. É um serviço **do seu usuário** (`--user`), sem `sudo`.
 

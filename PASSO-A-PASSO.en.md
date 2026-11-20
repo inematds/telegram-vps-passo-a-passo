@@ -2,7 +2,7 @@
 
 You’ll build a Telegram bot from scratch on your VPS. It receives your requests (“how much free disk space is there?”, “delete the logs folder”) and passes them to **Claude Code through your subscription**. The safeguards live in the **code**, not in the request:
 
-> The bot answers in Portuguese (that is how its code is written). Code comments are in Portuguese too; the explanation around them is in English.
+> The bot answers in the language you write in; only its fixed messages ("Este bot é privado.", "Confirma? (sim/não)") are in Portuguese, and "yes"/"sí" confirm like "sim". Code comments are in Portuguese too; the explanation around them is in English.
 
 1. Only you can talk to the bot (owner list; an empty list means nobody).
 2. The AI can only **read**, and is confined to a working folder (`area/`), without access to keys, SSH, or logins.
@@ -467,7 +467,7 @@ OPCOES_OK = {  # só opções sem valor; qualquer outra (inclusive -C, -t, --dir
 ESQUEMA = json.dumps({
     "type": "object",
     "properties": {
-        "resposta": {"type": "string", "description": "o que você descobriu, em português simples, curto"},
+        "resposta": {"type": "string", "description": "o que você descobriu, em linguagem simples, curto, na língua do dono"},
         "acao": {"type": ["object", "null"], "properties": {
             "descricao": {"type": "string", "description": "o que vai mudar, em uma frase"},
             "passos": {"type": "string", "description": "comandos exatos que serão rodados"}},
@@ -483,7 +483,7 @@ REGRAS_LEITURA = (
     "com caminhos relativos à pasta de trabalho; nada de |, ;, $, crase, ~ ou '..'. "
     "Sem curingas (* ? [): cite cada arquivo pelo nome, porque o bot executa os comandos sem shell. "
     "Se não precisar mudar nada, 'acao' = null. Nunca mostre chaves, senhas, tokens ou arquivos .env. "
-    "Resposta curta, para celular."
+    "Resposta curta, para celular, na mesma língua em que o dono escreveu."
 )
 ```
 
@@ -624,7 +624,7 @@ PRAZO_OK = int(os.environ.get("PRAZO_OK_S", "600"))   # pedido pendente vale 10 
 After `OPCOES_OK = {...}`, add:
 
 ```python
-SIM_FORTE = {"sim", "s", "confirmo", "confirma", "yes"}   # vale mesmo em frase: "sim, pode apagar"
+SIM_FORTE = {"sim", "s", "confirmo", "confirma", "yes", "y", "confirm", "si", "sí", "confirmar"}   # vale mesmo em frase: "sim, pode apagar"
 SIM_SOZINHO = {"pode", "ok", "manda", "faz"}              # só vale como a mensagem inteira
 ```
 
@@ -638,7 +638,7 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
-    if any(w in palavras for w in ("mas", "antes", "primeiro", "depois", "espera",
+    if any(w in palavras for w in ("mas", "pero", "but", "antes", "primeiro", "depois", "espera",
                                    "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
@@ -801,7 +801,7 @@ Each line is a JSON object (text with `"field": value`); a `.jsonl` file is just
 
 ## Step 9 — Test the safeguards and run the bot for real (systemd)
 
-Download the safeguard test and run it (uses 7 short Claude Code calls; takes from half a minute to about 4 minutes):
+Download the safeguard test and run it (uses 8 short Claude Code calls; takes from half a minute to about 4 minutes):
 
 ```bash
 curl -fsSLo testes/testar_travas.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/09-systemd-e-testes/testes/testar_travas.py
@@ -812,7 +812,7 @@ Also delete the bait from step 5, which no longer needs to stay on the VPS: `rm 
 
 The test imports your `bot.py` and uses the names from this guide (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): if you renamed anything, it will fail. It uses a **temporary** area and audit log (it won’t touch the running bot) and sets up two deliberate traps: a `settings.json` that allows `rm` (the bot must ignore it) and a decoy file with a fake secret **outside** the area (the AI must not reveal its contents). Expected output: every `PASSOU ...` line and, at the end, `TUDO OK`.
 
-> All 45 tests are valid on your VPS: the fake `.env` and the bait with a fake secret live in a temporary folder the test creates itself. Expected output: 45 `PASSOU` lines and `TUDO OK`.
+> All 50 tests are valid on your VPS: the fake `.env` and the bait with a fake secret live in a temporary folder the test creates itself. Expected output: 50 `PASSOU` lines and `TUDO OK`.
 
 Stop the test bot (Ctrl+C in terminals 1 and 2). Now the bot becomes a **systemd service** (the Linux program that starts and keeps other programs running): it will restart by itself if it crashes and when the VPS reboots. It’s a service **for your user** (`--user`), with no `sudo`.
 

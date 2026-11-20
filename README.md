@@ -55,7 +55,7 @@ Quem faz: 🧠 você (na VPS) · ⚙️ script/serviço · 🤖 Claude Code (`cl
 |---|---|
 | `PASSO-A-PASSO.md` | o texto das 9 etapas, com o código que entra em cada uma |
 | `etapas/NN-*/bot.py` | o `bot.py` completo no fim de cada etapa |
-| `etapas/09-systemd-e-testes/testes/testar_travas.py` | testes das travas (7 chamadas curtas do Claude Code) |
+| `etapas/09-systemd-e-testes/testes/testar_travas.py` | testes das travas (8 chamadas curtas do Claude Code) |
 | `etapas/09-systemd-e-testes/systemd/telegram-vps-remoto.service` | unidade systemd de usuário |
 | `ferramentas/telegram_falso.py` | imita `getMe`, `getUpdates`, `sendMessage`, `sendChatAction`; `fala` manda mensagem como alguém |
 | `validacao/` | relatos do agente novo que seguiu o texto do zero |
@@ -69,7 +69,7 @@ Quem faz: 🧠 você (na VPS) · ⚙️ script/serviço · 🤖 Claude Code (`cl
 5. Só `sim`/`s`/`confirmo`/`confirma`/`yes` (ou `pode`/`ok`/`manda`/`faz` sozinhos) confirmam; com `?` nunca, nem com `mas`/`antes`/`primeiro`/`depois`/`espera` ("sim, mas antes faz backup" cancela), nem com negação (`não`/`no`/`not`/`cancela`/`nunca`/`pare`/`para`: "sim, não apaga" cancela). Vale 10 min. Quem executa é o bot, sem shell. `tar -x` é listado antes (recusa `/`, `..`, link).
 6. `auditoria.jsonl` guarda cada evento, sem o token. Nenhuma chave `ANTHROPIC_*`/`OPENAI_*`/`OPENROUTER_*`/`TELEGRAM_*` vai para o processo do Claude.
 
-**Testes:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` (7 chamadas curtas do Claude Code) usa área e auditoria temporárias, coloca um `settings.json` armadilha que libera `rm` e uma isca com segredo falso fora da área; 45 testes, saída `TUDO OK`. Todos valem na sua VPS: o teste das chaves usa um `.env` falso dentro da área temporária.
+**Testes:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` (8 chamadas curtas do Claude Code) usa área e auditoria temporárias, coloca um `settings.json` armadilha que libera `rm` e uma isca com segredo falso fora da área; 50 testes, saída `TUDO OK`. Todos valem na sua VPS: o teste das chaves usa um `.env` falso dentro da área temporária.
 
 **Prova:** a validação está em [`validacao/`](validacao/): um agente novo (Claude Code, modelo Sonnet) recebeu só o texto, montou o bot do zero com o Telegram falso e rodou os testes.
 
