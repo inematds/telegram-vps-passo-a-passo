@@ -224,6 +224,7 @@ def tratar(msg):
     if p and eh_sim(texto):
         pendente.pop(chat)
         if time.time() - p["t"] > PRAZO_OK:
+            auditar(ev="expirado", de=quem, acao=p["acao"])
             enviar(chat, "Esse pedido expirou. Peça de novo.")
             return
         auditar(ev="aprovado", de=quem, acao=p["acao"])

@@ -210,7 +210,17 @@
   <div class="step"><div class="b">1</div><div>
     <h3>Preparar la VPS y Claude Code</h3>
     <p>Inicia sesión con un usuario común (no root), instala Claude Code e inicia sesión con tu suscripción, no con una clave de API. Después crea la carpeta del bot y descarga el Telegram falso.</p>
-<pre>python3 --version
+<p><strong>¿Solo tienes el usuario root?</strong> Crea un usuario común, entrando como root. Si entras a la VPS con clave SSH, la clave se copia al usuario nuevo; si entras con contraseña, salta la línea del <code>mkdir</code> y usa la contraseña que pida <code>adduser</code>.</p>
+<pre><span class="c"># como root</span>
+U=maria                          <span class="c"># cambia maria por el nombre que quieras</span>
+adduser $U                       <span class="c"># pide una contraseña</span>
+mkdir -p /home/$U/.ssh &amp;&amp; cp ~/.ssh/authorized_keys /home/$U/.ssh/ &amp;&amp; chown -R $U: /home/$U/.ssh &amp;&amp; chmod 700 /home/$U/.ssh
+loginctl enable-linger $U        <span class="c"># opcional aquí; la etapa 9 también lo hace</span>
+exit
+<span class="c"># de vuelta en tu computadora</span>
+ssh maria@IP_DE_LA_VPS</pre>
+    <p>Entra siempre directo con <code>ssh maria@IP_DE_LA_VPS</code>. <strong>No uses <code>su - maria</code></strong>: el <code>systemctl --user</code> de la etapa 9 necesita una sesión abierta por inicio de sesión directo en SSH.</p>
+    <pre>python3 --version
 curl -fsSL https://claude.ai/install.sh | bash
 claude                         <span class="c"># /login con la cuenta de la suscripción → /exit</span>
 env | grep -c ANTHROPIC_API_KEY
@@ -222,6 +232,7 @@ curl -fsSLo ferramentas/telegram_falso.py https://raw.githubusercontent.com/inem
 <pre class="out">Python 3.12.3          (3.10 o posterior)
 0
 ok</pre>
+    <p>Si aparece <code>claude: command not found</code> justo después de instalar, sal y vuelve a entrar al SSH, o ejecuta <code>export PATH="$HOME/.local/bin:$PATH"</code>.</p>
     <p><strong>De aquí en adelante, todos los comandos se ejecutan dentro de <code>~/kits/telegram-vps-remoto</code></strong> (la carpeta del bot).</p>
   </div></div>
 
@@ -453,6 +464,7 @@ bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer coisa eu perg
       <li>mira la <strong>terminal de la VPS</strong>, no Telegram: aparece <code>recusado: from.id=123456789</code>;</li>
       <li>guarda ese número en el <code>.env</code> (<code>DONOS=123456789</code>) y vuelve a ejecutar el bot.</li>
     </ul>
+    <p>Para editar el <code>.env</code>: <code>nano .env</code>, cambia <code>cole_o_token_aqui</code> por el token del BotFather (y, después, completa <code>DONOS=</code>), guarda con <kbd>Ctrl+O</kbd> y <kbd>Enter</kbd> y sal con <kbd>Ctrl+X</kbd>.</p>
       </div></div>
 
   <div class="step"><div class="b">5</div><div>
@@ -1141,7 +1153,8 @@ ls area</pre>
 bot → Cancelado. Nada foi mudado. (= Cancelado. No se cambió nada.)
 bot → … Confirma? (sim/não)   (= … ¿Confirmas? (sí/no))
 bot → Feito: (= Hecho:)
-      rm -r logs → ok</pre>
+      rm -r logs → ok
+(vacío: la carpeta logs desapareció)</pre>
       </div></div>
 
   <div class="step"><div class="b">8</div><div>
@@ -1376,6 +1389,7 @@ def tratar(msg):
     if p and eh_sim(texto):
         pendente.pop(chat)
         if time.time() - p["t"] &gt; PRAZO_OK:
+            auditar(ev="expirado", de=quem, acao=p["acao"])
             enviar(chat, "Esse pedido expirou. Peça de novo.")
             return
         auditar(ev="aprovado", de=quem, acao=p["acao"])
@@ -1474,7 +1488,7 @@ TUDO OK</pre>
     <p>Después, el bot se convierte en un <strong>servicio de systemd</strong>: el programa de Linux que inicia otros programas y los mantiene funcionando. Es un servicio <strong>de tu usuario</strong> (<code>--user</code>), sin <code>sudo</code>, que se reinicia solo si se cae. Primero comprueba dónde está <code>claude</code>, porque el servicio no lee tu <code>~/.bashrc</code>:</p>
 <pre>which claude</pre>
     <span class="lbl">Salida esperada</span>
-<pre class="out">/home/voce/.local/bin/claude          (o /home/voce/.npm-global/bin/claude)</pre>
+<pre class="out">/home/&lt;tú&gt;/.local/bin/claude          (o /home/&lt;tú&gt;/.npm-global/bin/claude)</pre>
     <p>El <code>PATH</code> es la lista de carpetas donde el sistema busca los programas; el servicio tiene su propia lista, en la línea <code>Environment=PATH=</code>.</p>
     <p>Las dos carpetas ya están en el <code>PATH</code> del servicio que aparece abajo; si tu <code>claude</code> está en otra, agrégala a la línea <code>Environment=PATH=</code>. Con tu token real y tu <code>DONOS</code> ya guardados en <code>.env</code>, crea la carpeta y el archivo del servicio. El comando <code>cat &gt; archivo &lt;&lt;'EOF' … EOF</code> guarda en el archivo todo lo que está entre esas dos líneas:</p>
 <pre>mkdir -p ~/.config/systemd/user
@@ -1501,7 +1515,7 @@ systemctl --user is-active telegram-vps-remoto
 journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
     <span class="lbl">Salida esperada</span>
 <pre class="out">active
-… no ar · donos=1 · área=/home/voce/kits/telegram-vps-remoto/area</pre>
+… no ar · donos=1 · área=/home/&lt;tú&gt;/kits/telegram-vps-remoto/area</pre>
     <p>El <code>loginctl enable-linger</code> («linger») mantiene el servicio en funcionamiento después de que sales de SSH. Si te pide una contraseña o dice que no tienes permiso, ejecuta una vez <code>sudo loginctl enable-linger "$USER"</code>. Si tu bot está en otra carpeta que no sea <code>~/kits/telegram-vps-remoto</code>, cambia la ruta en <code>WorkingDirectory=</code> y <code>ExecStart=</code> (<code>%h</code> es tu directorio personal).</p>
     <p class="gab">Archivos de esta etapa: <a href="https://github.com/inematds/telegram-vps-passo-a-passo/tree/main/etapas/09-systemd-e-testes" target="_blank" rel="noopener">etapas/09-systemd-e-testes/</a></p>
     <p><strong>Prueba final, desde el celular</strong> (con el servicio encendido y tu token real). Vuelve a crear los archivos de prueba en la VPS y manda tres mensajes a tu bot:</p>
@@ -1520,7 +1534,7 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
   <h2>Probado por alguien que nunca lo había visto</h2>
   <p class="sub">No basta con que el autor diga que funciona. Por eso un agente nuevo siguió el texto desde cero, y el conjunto de pruebas intenta romper las barreras a propósito.</p>
   <div class="grid g3">
-    <div class="card"><div class="big">40</div><h3>pruebas de las protecciones, todas válidas en tu VPS</h3><p>Entre ellas: lista vacía, un <code>.env</code> falso dentro del área y un cebo con un secreto falso fuera de ella que no se filtran, borrar que se vuelve propuesta, 17 comandos y opciones peligrosos rechazados, 10 confirmaciones verificadas (6 ambiguas rechazadas), una configuración trampa que habilita <code>rm</code> y el flujo completo por el «sí».</p></div>
+    <div class="card"><div class="big">40</div><h3>pruebas de las protecciones, todas válidas en tu VPS</h3><p>Entre ellas: lista vacía, un <code>.env</code> falso dentro del área y un cebo con un secreto falso fuera de ella que no se filtran, borrar que se vuelve propuesta, 17 comandos y opciones peligrosos rechazados, 10 confirmaciones verificadas (6 rechazadas), una configuración trampa que habilita <code>rm</code> y el flujo completo por el «sí».</p></div>
     <div class="card"><div class="big">4</div><h3>rondas de un agente nuevo, desde cero</h3><p>Un Claude Code nuevo (Sonnet), que nunca había visto el proyecto, montó el bot desde cero con el Telegram falso. En la 1.ª ronda encontró un orden de líneas que rompía la etapa 6; el texto se corrigió. Las rondas 3 y 4 usaron solo esta página: las 9 etapas pasaron, con 40 PASSOU y TUDO OK.</p></div>
     <div class="card"><div class="big">1</div><h3>brecha real encontrada y cerrada</h3><p>El bot original heredaba los permisos personales de Claude Code. En una máquina con <code>rm</code> habilitado, «borra la carpeta logs» la borró. Con la corrección de la etapa 5, el mismo pedido no borra nada.</p></div>
   </div>
@@ -1534,7 +1548,7 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
   <details><summary>¿Cuesta algo además de la suscripción?</summary><p>No. El bot usa Claude Code, que ya tienes con tu suscripción, y solo la biblioteca estándar de Python. Telegram es gratis. Solo necesitas una VPS.</p></details>
   <details><summary>¿La IA puede borrar algo sin que se lo pida?</summary><p>No. Solo tiene herramientas de lectura: lee contenido únicamente dentro de la carpeta de trabajo y, fuera de ella, solo ve el espacio en disco y los nombres de las carpetas y archivos. Se bloquea el acceso a claves e inicios de sesión. Para cambiar algo, solo escribe la propuesta. El bot lo ejecuta después de un «sí» claro y con comandos simples dentro de la carpeta de trabajo.</p></details>
   <details><summary>¿Y si otra persona encuentra mi bot?</summary><p>Recibe «Este bot es privado.» y su número queda registrado. Solo los números de la lista <code>DONOS</code> pueden hablar con el bot.</p></details>
-  <details><summary>Ya existe un bot listo. ¿Para qué necesito la guía?</summary><p>Para entenderlo y poder hacer cambios. Si lo configuras tú mismo, sabes dónde está cada barrera y por qué existe, y puedes agregar comandos o carpetas de forma segura.</p></details>
+  <details><summary>¿Por qué montarlo etapa por etapa en vez de bajar solo el archivo final?</summary><p>Porque así sabes dónde está cada protección y por qué existe, y puedes cambiar el bot con seguridad (añadir un comando, cambiar la carpeta de trabajo). El archivo final está en la etapa 9, para comparar.</p></details>
   <details><summary>¿Funciona sin VPS, en mi computadora?</summary><p>Las pruebas con el Telegram falso funcionan en cualquier Linux con Python 3 y Claude Code. El bot real está pensado para permanecer encendido en una VPS.</p></details>
   <p style="margin-top:22px;font-size:1.05rem">Y tú, ¿qué le pedirías primero a tu servidor desde el celular? Todo gratis en <a href="https://inema.club" target="_blank" rel="noopener">inema.club</a>, directamente en internet.</p>
 </div></section>

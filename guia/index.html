@@ -210,7 +210,17 @@
   <div class="step"><div class="b">1</div><div>
     <h3>Preparar a VPS e o Claude Code</h3>
     <p>Entre com um usuário comum (não root), instale o Claude Code e faça login com a sua assinatura, não com chave de API. Depois crie a pasta do bot e baixe o Telegram falso.</p>
-<pre>python3 --version
+<p><strong>Só tem o usuário root?</strong> Crie um usuário comum, entrando como root. Se você entra na VPS com chave SSH, a chave é copiada para o usuário novo; se entra com senha, pule a linha do <code>mkdir</code> e use a senha que o <code>adduser</code> pedir.</p>
+<pre><span class="c"># como root</span>
+U=maria                          <span class="c"># troque maria pelo nome que você quer</span>
+adduser $U                       <span class="c"># pede uma senha</span>
+mkdir -p /home/$U/.ssh &amp;&amp; cp ~/.ssh/authorized_keys /home/$U/.ssh/ &amp;&amp; chown -R $U: /home/$U/.ssh &amp;&amp; chmod 700 /home/$U/.ssh
+loginctl enable-linger $U        <span class="c"># opcional aqui; a etapa 9 também faz</span>
+exit
+<span class="c"># de volta ao seu computador</span>
+ssh maria@IP_DA_VPS</pre>
+    <p>Entre sempre direto com <code>ssh maria@IP_DA_VPS</code>. <strong>Não use <code>su - maria</code></strong>: o <code>systemctl --user</code> da etapa 9 precisa de uma sessão aberta por login direto no SSH.</p>
+    <pre>python3 --version
 curl -fsSL https://claude.ai/install.sh | bash
 claude                         <span class="c"># /login com a conta da assinatura → /exit</span>
 env | grep -c ANTHROPIC_API_KEY
@@ -222,6 +232,7 @@ curl -fsSLo ferramentas/telegram_falso.py https://raw.githubusercontent.com/inem
 <pre class="out">Python 3.12.3          (3.10 ou mais novo)
 0
 ok</pre>
+    <p>Se aparecer <code>claude: command not found</code> logo depois de instalar, saia e entre de novo no SSH, ou rode <code>export PATH="$HOME/.local/bin:$PATH"</code>.</p>
     <p><strong>Daqui em diante, todos os comandos rodam dentro de <code>~/kits/telegram-vps-remoto</code></strong> (a pasta do bot).</p>
   </div></div>
 
@@ -453,6 +464,7 @@ bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer coisa eu perg
       <li>olhe o <strong>terminal da VPS</strong>, não o Telegram: aparece <code>recusado: from.id=123456789</code>;</li>
       <li>grave esse número no <code>.env</code> (<code>DONOS=123456789</code>) e rode o bot de novo.</li>
     </ul>
+    <p>Para editar o <code>.env</code>: <code>nano .env</code>, troque <code>cole_o_token_aqui</code> pelo token do BotFather (e, depois, preencha <code>DONOS=</code>), salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd> e saia com <kbd>Ctrl+X</kbd>.</p>
       </div></div>
 
   <div class="step"><div class="b">5</div><div>
@@ -1141,7 +1153,8 @@ ls area</pre>
 bot → Cancelado. Nada foi mudado.
 bot → … Confirma? (sim/não)
 bot → Feito:
-      rm -r logs → ok</pre>
+      rm -r logs → ok
+(vazio: a pasta logs sumiu)</pre>
       </div></div>
 
   <div class="step"><div class="b">8</div><div>
@@ -1376,6 +1389,7 @@ def tratar(msg):
     if p and eh_sim(texto):
         pendente.pop(chat)
         if time.time() - p["t"] &gt; PRAZO_OK:
+            auditar(ev="expirado", de=quem, acao=p["acao"])
             enviar(chat, "Esse pedido expirou. Peça de novo.")
             return
         auditar(ev="aprovado", de=quem, acao=p["acao"])
@@ -1520,7 +1534,7 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
   <h2>Testado por quem nunca tinha visto</h2>
   <p class="sub">Não basta o autor dizer que funciona. Por isso um agente novo seguiu o texto do zero, e a suíte de testes tenta furar as travas de propósito.</p>
   <div class="grid g3">
-    <div class="card"><div class="big">40</div><h3>testes das travas, todos valendo na sua VPS</h3><p>Entre eles: lista vazia, um <code>.env</code> falso dentro da área e uma isca com segredo falso fora dela que não saem, apagar que vira proposta, 17 comandos e opções perigosas recusados, 10 confirmações conferidas (6 ambíguas recusadas), uma configuração armadilha que libera <code>rm</code> e o fluxo completo pelo "sim".</p></div>
+    <div class="card"><div class="big">40</div><h3>testes das travas, todos valendo na sua VPS</h3><p>Entre eles: lista vazia, um <code>.env</code> falso dentro da área e uma isca com segredo falso fora dela que não saem, apagar que vira proposta, 17 comandos e opções perigosas recusados, 10 confirmações conferidas (6 recusadas), uma configuração armadilha que libera <code>rm</code> e o fluxo completo pelo "sim".</p></div>
     <div class="card"><div class="big">4</div><h3>rodadas de um agente novo, do zero</h3><p>Um Claude Code novo (Sonnet), que nunca tinha visto o projeto, montou o bot do zero com o Telegram falso. Na 1ª rodada achou uma ordem de linhas que quebrava a etapa 6; o texto foi corrigido. As rodadas 3 e 4 usaram só esta página: as 9 etapas passaram, com 40 PASSOU e TUDO OK.</p></div>
     <div class="card"><div class="big">1</div><h3>furo real achado e fechado</h3><p>O bot original herdava as permissões pessoais do Claude Code. Numa máquina com <code>rm</code> liberado, "apague a pasta logs" apagou. Com a correção da etapa 5, o mesmo pedido não apaga nada.</p></div>
   </div>
@@ -1534,7 +1548,7 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
   <details><summary>Custa alguma coisa além da assinatura?</summary><p>Não. O bot usa o Claude Code que você já assina e só a biblioteca padrão do Python. O Telegram é grátis. Você só precisa de uma VPS.</p></details>
   <details><summary>A IA pode apagar algo sem eu pedir?</summary><p>Não. Ela só tem ferramentas de leitura: lê conteúdo só dentro da pasta de trabalho e, fora dela, só vê espaço em disco e nomes de pastas e arquivos. Chaves e logins ficam negados. Para mudar algo, ela só escreve a proposta. Quem executa é o bot, depois de um "sim" limpo, e só comandos simples dentro da pasta de trabalho.</p></details>
   <details><summary>E se outra pessoa achar o meu bot?</summary><p>Ela recebe "Este bot é privado." e o número dela fica anotado. Só os números da lista <code>DONOS</code> conversam com o bot.</p></details>
-  <details><summary>Já existe um bot pronto. Para que o passo a passo?</summary><p>Para entender e poder mudar. Montando você mesmo, você sabe onde cada trava está e por que ela existe, e pode acrescentar comandos ou pastas com segurança.</p></details>
+  <details><summary>Por que montar etapa por etapa, em vez de baixar só o arquivo final?</summary><p>Porque assim você sabe onde cada trava está e por que ela existe, e pode mudar o bot com segurança (acrescentar um comando, trocar a pasta de trabalho). O arquivo final está na etapa 9, para comparar.</p></details>
   <details><summary>Funciona sem VPS, no meu computador?</summary><p>Os testes com o Telegram falso rodam em qualquer Linux com Python 3 e Claude Code. O bot de verdade foi feito para ficar ligado numa VPS.</p></details>
   <p style="margin-top:22px;font-size:1.05rem">E você, o que pediria primeiro para o seu servidor pelo celular? Tudo grátis no <a href="https://inema.club" target="_blank" rel="noopener">inema.club</a>, direto na internet.</p>
 </div></section>

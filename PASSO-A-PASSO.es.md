@@ -23,6 +23,21 @@ El archivo completo de cada etapa (solución) está en `etapas/NN-nome/bot.py` e
 
 ## Etapa 1 — Preparar la VPS y Claude Code
 
+**¿Solo tienes el usuario root?** Crea un usuario común, entrando como root. Si entras a la VPS con clave SSH, la clave se copia al usuario nuevo; si entras con contraseña, salta la línea del `mkdir` y usa la contraseña que pida `adduser`.
+
+```bash
+# como root
+U=maria                          # cambia maria por el nombre que quieras
+adduser $U                       # pide una contraseña
+mkdir -p /home/$U/.ssh && cp ~/.ssh/authorized_keys /home/$U/.ssh/ && chown -R $U: /home/$U/.ssh && chmod 700 /home/$U/.ssh
+loginctl enable-linger $U        # opcional aquí; la etapa 9 también lo hace
+exit
+# de vuelta en tu computadora
+ssh maria@IP_DE_LA_VPS
+```
+
+Entra siempre directo con `ssh maria@IP_DE_LA_VPS`. **No uses `su - maria`**: el `systemctl --user` de la etapa 9 necesita una sesión abierta por inicio de sesión directo en SSH.
+
 Conéctate a la VPS con un **usuario común** (no root). Comprueba Python:
 
 ```bash
@@ -46,6 +61,8 @@ claude -p "responda só: ok" --model haiku
 ```
 
 Salida esperada: `ok`.
+
+Si aparece `claude: command not found` justo después de instalar, sal y vuelve a entrar al SSH, o ejecuta `export PATH="$HOME/.local/bin:$PATH"`.
 
 Crea la carpeta del bot y descarga el Telegram falso:
 
@@ -79,7 +96,7 @@ EOF
 chmod 600 .env
 ```
 
-Crea `bot.py` para esta etapa (solo se presenta a Telegram):
+Crea `bot.py` para esta etapa (solo se presenta a Telegram). Forma rápida: descárgalo listo con `curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/02-token-e-env/bot.py`. O escríbelo tú: `nano bot.py`, pega el código de abajo, guarda con Ctrl+O y Enter, y sal con Ctrl+X. (En las etapas siguientes, el archivo listo de cada una está en `etapas/NN-nome/bot.py`, y la página de la guía tiene el `curl` de cada etapa.)
 
 ```python
 #!/usr/bin/env python3
@@ -275,6 +292,8 @@ Resultado esperado: `bot → Pronto. Peça o que quiser na VPS. Antes de mudar q
 3. Desde el celular, envía `/start` a tu bot. Responde «Este bot é privado.», como se espera.
 4. Mira el **terminal de la VPS** (no Telegram): aparece `recusado: from.id=123456789`. Ese número es el tuyo.
 5. Detén el bot (Ctrl+C), guarda en `.env`: `DONOS=123456789` (tu número) y vuelve a ejecutarlo: ahora `/start` responde «Pronto. …».
+
+Para editar el `.env`: `nano .env`, cambia `cole_o_token_aqui` por el token del BotFather (y completa `DONOS=`), guarda con Ctrl+O y Enter y sal con Ctrl+X.
 
 Si aparece más de un número, solo uno es el tuyo: el que apareció cuando enviaste `/start`.
 
@@ -696,7 +715,7 @@ python3 ferramentas/telegram_falso.py fala --de 111 "sim"
 ls area
 ```
 
-Resultado esperado: `Confirma? (sim/não)` → `Cancelado. Nada foi mudado.` → `3` → `Confirma? (sim/não)` → `Feito:` y `rm -r logs → ok` → `ls area` sin `logs`.
+Resultado esperado: `Confirma? (sim/não)` → `Cancelado. Nada foi mudado.` → `3` → `Confirma? (sim/não)` → `Feito:` y `rm -r logs → ok` → `ls area` sin `logs` (vacío: la carpeta logs desapareció).
 
 ---
 
@@ -724,6 +743,7 @@ Y llama a `auditar` en estos puntos:
 | Dónde (en `tratar` / `main`) | Línea que debes añadir |
 |---|---|
 | antes de `print(f"recusado: ...")` | `auditar(ev="recusado", de=quem, nome=msg.get("from", {}).get("first_name"))` |
+| en el bloque del "sí", antes de `enviar(chat, "Esse pedido expirou. …")` | `auditar(ev="expirado", de=quem, acao=p["acao"])` |
 | justo antes de `r = executar(p["cmds"])` | `auditar(ev="aprovado", de=quem, acao=p["acao"])` |
 | justo después de `r = executar(p["cmds"])` | `auditar(ev="feito", resultado=r[:500])` |
 | en el bloque `if p:` (el segundo, el que cancela), justo después de su `pendente.pop(chat)` | `auditar(ev="cancelado", de=quem, texto=texto[:200])` |
