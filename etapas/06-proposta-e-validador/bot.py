@@ -39,14 +39,17 @@ API = os.environ.get("TELEGRAM_API", "https://api.telegram.org") + f"/bot{TOKEN}
 H = os.path.expanduser("~")
 NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = caminho absoluto
     "Read(~/.config/**)", "Read(~/.ssh/**)", "Read(~/.claude/**)", "Read(~/.codex/**)",
-    "Read(~/.npm-global/**)", f"Read(/{AQUI}/.env)", "Read(**/.env)", "Read(//etc/shadow)", "Read(//root/**)",
+    "Read(~/.npm-global/**)", "Read(~/.aws/**)", "Read(~/.docker/**)", "Read(~/.kube/**)", "Read(~/.gnupg/**)",
+    "Read(~/.git-credentials)", "Read(~/.netrc)", "Read(~/.bash_history)", f"Read(/{AQUI}/.env)", "Read(**/.env)", "Read(//etc/shadow)", "Read(//root/**)",
     "Edit", "Write", "NotebookEdit",
     "Bash(sudo:*)", "Bash(su:*)", "Bash(reboot:*)", "Bash(shutdown:*)", "Bash(poweroff:*)",
     "Bash(systemctl:*)", "Bash(curl:*)", "Bash(wget:*)", "Bash(ssh:*)", "Bash(scp:*)",
     "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "WebFetch", "WebSearch",
 ]
-LEITURA = ["Read", "Glob", "Grep", "Bash(df:*)", "Bash(du:*)", "Bash(ls:*)", "Bash(free:*)",
-           "Bash(uptime:*)", "Bash(wc:*)"]
+# Leitura de CONTEÚDO só dentro da área ("./**" = relativo à pasta onde o claude roda). Fora dela a IA só
+# vê espaço em disco e nomes de pastas (df/du/ls), nunca o que tem dentro dos arquivos.
+LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(du:*)", "Bash(ls:*)",
+           "Bash(free:*)", "Bash(uptime:*)"]
 # Depois do "sim" quem roda é o BOT, não a IA: só estes comandos, só dentro da área, sem shell.
 COMANDOS_OK = {"rm", "mv", "cp", "mkdir", "touch", "gzip", "gunzip", "tar"}
 OPCOES_OK = {  # só opções sem valor; qualquer outra (inclusive -C, -t, --directory=) é recusada

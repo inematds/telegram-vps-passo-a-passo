@@ -12,7 +12,7 @@ Um passo a passo para você montar, com as próprias mãos e na sua VPS, um bot 
 
 Guia completo (landing + passo a passo): **https://inematds.github.io/telegram-vps-passo-a-passo/guia/**
 
-- O texto inteiro, com todo o código de cada etapa: [`PASSO-A-PASSO.md`](PASSO-A-PASSO.md)
+- O texto inteiro, com todo o código de cada etapa: [`PASSO-A-PASSO.md`](PASSO-A-PASSO.md) (também em [inglês](PASSO-A-PASSO.en.md) e [espanhol](PASSO-A-PASSO.es.md))
 - O `bot.py` pronto de cada etapa (gabarito): [`etapas/`](etapas/)
 - O Telegram falso para testar sem bot real: [`ferramentas/telegram_falso.py`](ferramentas/telegram_falso.py)
 
@@ -55,7 +55,7 @@ Quem faz: 🧠 você (na VPS) · ⚙️ script/serviço · 🤖 Claude Code (`cl
 |---|---|
 | `PASSO-A-PASSO.md` | o texto das 9 etapas, com o código que entra em cada uma |
 | `etapas/NN-*/bot.py` | o `bot.py` completo no fim de cada etapa |
-| `etapas/09-systemd-e-testes/testes/testar_travas.py` | testes das travas (5 chamadas curtas do Claude Code) |
+| `etapas/09-systemd-e-testes/testes/testar_travas.py` | testes das travas (6 chamadas curtas do Claude Code) |
 | `etapas/09-systemd-e-testes/systemd/telegram-vps-remoto.service` | unidade systemd de usuário |
 | `ferramentas/telegram_falso.py` | imita `getMe`, `getUpdates`, `sendMessage`, `sendChatAction`; `fala` manda mensagem como alguém |
 | `validacao/` | relatos do agente novo que seguiu o texto do zero |
@@ -63,13 +63,13 @@ Quem faz: 🧠 você (na VPS) · ⚙️ script/serviço · 🤖 Claude Code (`cl
 **As travas (no código):**
 
 1. `DONOS` vazio recusa todos; o bot anota o `from.id` de quem tentou.
-2. A IA roda com `--allowedTools Read Glob Grep Bash(df/du/ls/free/uptime/wc)`, `--disallowedTools` para chaves, SSH, logins, `.env`, escrita, `sudo`, `curl`…, `--permission-mode dontAsk`, presa em `area/`.
+2. A IA roda com `--allowedTools Read(./**) Glob(./**) Grep(./**) Bash(df/du/ls/free/uptime)`: conteúdo de arquivo só dentro de `area/`; fora dela só espaço em disco e nomes de pastas. `--disallowedTools` nega chaves e logins (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), `~/.bash_history`, todo `.env`, escrita, `sudo`, `curl`, `cat`…; `--permission-mode dontAsk`.
 3. `--setting-sources ""` e `--strict-mcp-config`: sem isso, regras "allow" do seu `~/.claude/settings.json` se somam e furam a trava (medido: "apague a pasta logs" apagou).
 4. A ação vem num JSON fixo (`--json-schema`); `validar()` aceita só `rm mv cp mkdir touch gzip gunzip tar`, só opções da lista curta, sem `| ; $ \` < > ~ ..`, todo caminho (com `realpath`) dentro de `area/`.
-5. Só `sim`/`s`/`confirmo`/`confirma`/`yes` (ou `pode`/`ok`/`manda`/`faz` sozinhos) confirmam; com `?` nunca. Vale 10 min. Quem executa é o bot, sem shell. `tar -x` é listado antes (recusa `/`, `..`, link).
+5. Só `sim`/`s`/`confirmo`/`confirma`/`yes` (ou `pode`/`ok`/`manda`/`faz` sozinhos) confirmam; com `?` nunca, nem com `mas`/`antes`/`primeiro`/`depois`/`espera` ("sim, mas antes faz backup" cancela). Vale 10 min. Quem executa é o bot, sem shell. `tar -x` é listado antes (recusa `/`, `..`, link).
 6. `auditoria.jsonl` guarda cada evento, sem o token. Nenhuma chave `ANTHROPIC_*`/`OPENAI_*`/`OPENROUTER_*`/`TELEGRAM_*` vai para o processo do Claude.
 
-**Testes:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` usa área e auditoria temporárias e coloca um `settings.json` armadilha que libera `rm`; saída `TUDO OK`.
+**Testes:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` (6 chamadas curtas do Claude Code) usa área e auditoria temporárias, coloca um `settings.json` armadilha que libera `rm` e uma isca com segredo falso fora da área; 39 testes, saída `TUDO OK`. Um deles (`chaves não saem`) usa `~/.config/inema/.env`, que só existe na máquina do autor: na sua VPS ele passa sem provar nada, e quem prova é a isca fora da área.
 
 **Prova:** a validação está em [`validacao/`](validacao/): um agente novo (Claude Code, modelo Sonnet) recebeu só o texto, montou o bot do zero com o Telegram falso e rodou os testes.
 

@@ -4,7 +4,7 @@ After=network-online.target
 
 [Service]
 WorkingDirectory=%h/kits/telegram-vps-remoto
-Environment=PATH=%h/.npm-global/bin:%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PATH=%h/.npm-global/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/usr/bin/python3 %h/kits/telegram-vps-remoto/bot.py
 Restart=on-failure
 RestartSec=10
