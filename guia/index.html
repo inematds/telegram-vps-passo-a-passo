@@ -212,11 +212,11 @@
 <p><strong>Só tem o usuário root?</strong> Crie um usuário comum, entrando como root. Se você entra na VPS com chave SSH, a chave é copiada para o usuário novo; se entra com senha, pule a linha do <code>mkdir</code> e use a senha que o <code>adduser</code> pedir.</p>
 <pre><span class="c"># como root</span>
 U=maria                          <span class="c"># troque maria pelo nome que você quer</span>
-adduser $U                       <span class="c"># pede uma senha</span>
+adduser $U                       <span class="c"># pede uma senha; nas outras perguntas, pode só apertar Enter</span>
 mkdir -p /home/$U/.ssh &amp;&amp; cp ~/.ssh/authorized_keys /home/$U/.ssh/ &amp;&amp; chown -R $U: /home/$U/.ssh &amp;&amp; chmod 700 /home/$U/.ssh
 loginctl enable-linger $U        <span class="c"># obrigatório: deixa o bot no ar depois que você sai do SSH</span>
 exit
-<span class="c"># de volta ao seu computador; troque maria pelo nome que você escolheu; troque maria pelo nome que você escolheu</span>
+<span class="c"># de volta ao seu computador; troque maria pelo nome que você escolheu</span>
 ssh maria@IP_DA_VPS</pre>
     <p>Entre sempre direto com <code>ssh maria@IP_DA_VPS</code>. <strong>Não use <code>su - maria</code></strong>: o <code>systemctl --user</code> da etapa 9 precisa de uma sessão aberta por login direto no SSH.</p>
     <pre>python3 --version
@@ -447,10 +447,13 @@ if __name__ == "__main__":
     main()
 </pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/04-donos/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
     <!-- /codigo -->
-<pre>TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso DONOS= python3 bot.py
+<pre><span class="c"># terminal 2</span>
+TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso DONOS= python3 bot.py
+<span class="c"># terminal 3</span>
 python3 ferramentas/telegram_falso.py fala --de 111 "oi"
 <span class="c"># pare o bot e rode com DONOS=111</span>
 TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso DONOS=111 python3 bot.py
+<span class="c"># terminal 3</span>
 python3 ferramentas/telegram_falso.py fala --de 111 "/start"</pre>
     <span class="lbl">Saída esperada</span>
 <pre class="out">bot → Este bot é privado.          (e no terminal 2: recusado: from.id=111)
@@ -1502,6 +1505,7 @@ PASSOU aceita rm dentro da área
 PASSOU apagou depois do sim …
 …            (45 linhas PASSOU no total)
 TUDO OK</pre>
+    <p>Apague também a isca da etapa 5, que não precisa mais ficar na VPS: <code>rm -r fora</code>.</p>
     <p><strong>Para parar:</strong> antes de ligar o serviço, pare o bot de teste e o Telegram falso (<kbd>Ctrl+C</kbd> nos terminais 2 e 1). Uma instância só: com o serviço ligado, não rode <code>python3 bot.py</code> à mão (os dois disputariam as mensagens). Para desligar o serviço: <code>systemctl --user stop telegram-vps-remoto</code> (e <code>disable</code> para ele não voltar no boot).</p>
     <p>Depois o bot vira um <strong>serviço do systemd</strong>: o programa do Linux que liga outros programas e os mantém no ar. É um serviço <strong>do seu usuário</strong> (<code>--user</code>), sem <code>sudo</code>, que volta sozinho se cair. Primeiro confira onde está o <code>claude</code>, porque o serviço não lê o seu <code>~/.bashrc</code>:</p>
 <pre>which claude</pre>
@@ -1553,7 +1557,7 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
   <p class="sub">Não basta o autor dizer que funciona. Por isso um agente novo seguiu o texto do zero, e a suíte de testes tenta furar as travas de propósito.</p>
   <div class="grid g3">
     <div class="card"><div class="big">45</div><h3>testes das travas, todos valendo na sua VPS</h3><p>Entre eles: lista vazia, um <code>.env</code> falso dentro da área e uma isca com segredo falso fora dela que não saem, apagar que vira proposta, 18 comandos e opções perigosas recusados (curinga incluído), 14 confirmações conferidas (10 recusadas), uma configuração armadilha que libera <code>rm</code> e o fluxo completo pelo "sim".</p></div>
-    <div class="card"><div class="big">4</div><h3>rodadas de um agente novo, do zero</h3><p>Um Claude Code novo (Sonnet), que nunca tinha visto o projeto, montou o bot do zero com o Telegram falso. Na 1ª rodada achou uma ordem de linhas que quebrava a etapa 6; o texto foi corrigido. As rodadas 3 e 4 usaram só esta página: as 9 etapas passaram, com 40 PASSOU e TUDO OK.</p></div>
+    <div class="card"><div class="big">4</div><h3>rodadas de um agente novo, do zero</h3><p>Um Claude Code novo (Sonnet), que nunca tinha visto o projeto, montou o bot do zero com o Telegram falso. Na 1ª rodada achou uma ordem de linhas que quebrava a etapa 6; o texto foi corrigido. As rodadas 3 e 4 usaram só esta página: as 9 etapas passaram com TUDO OK (na época a suíte tinha 39 e 40 testes; hoje tem 45).</p></div>
     <div class="card"><div class="big">1</div><h3>furo real achado e fechado</h3><p>O bot original herdava as permissões pessoais do Claude Code. Numa máquina com <code>rm</code> liberado, "apague a pasta logs" apagou. Com a correção da etapa 5, o mesmo pedido não apaga nada.</p></div>
   </div>
 </div></section>

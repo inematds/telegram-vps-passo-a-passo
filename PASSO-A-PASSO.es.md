@@ -28,7 +28,7 @@ El archivo completo de cada etapa (solución) está en `etapas/NN-nome/bot.py` e
 ```bash
 # como root
 U=maria                          # cambia maria por el nombre que quieras
-adduser $U                       # pide una contraseña
+adduser $U                       # pide una contraseña; en las demás preguntas puedes solo apretar Enter
 mkdir -p /home/$U/.ssh && cp ~/.ssh/authorized_keys /home/$U/.ssh/ && chown -R $U: /home/$U/.ssh && chmod 700 /home/$U/.ssh
 loginctl enable-linger $U        # obligatorio: mantiene el bot encendido cuando sales del SSH
 exit
@@ -803,6 +803,8 @@ Descarga la prueba de las protecciones y ejecútala (consume 7 llamadas cortas a
 curl -fsSLo testes/testar_travas.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/09-systemd-e-testes/testes/testar_travas.py
 python3 testes/testar_travas.py
 ```
+
+Borra también el cebo de la etapa 5, que ya no necesita quedarse en la VPS: `rm -r fora`.
 
 La prueba importa tu `bot.py` y usa los nombres del texto (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): si cambiaste alguno, falla. Usa un área y una auditoría **temporales** (no modifica el bot en marcha) y prepara dos trampas a propósito: un `settings.json` que permite `rm` (el bot debe ignorarlo) y un archivo señuelo con un secreto falso **fuera** del área (la IA no puede mostrar su contenido). Resultado esperado: todas las líneas `PASSOU ...` y, al final, `TUDO OK`.
 

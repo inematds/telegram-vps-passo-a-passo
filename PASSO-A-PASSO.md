@@ -24,7 +24,7 @@ O arquivo completo de cada etapa (gabarito) está em `etapas/NN-nome/bot.py` no 
 ```bash
 # como root
 U=maria                          # troque maria pelo nome que você quer
-adduser $U                       # pede uma senha
+adduser $U                       # pede uma senha; nas outras perguntas, pode só apertar Enter
 mkdir -p /home/$U/.ssh && cp ~/.ssh/authorized_keys /home/$U/.ssh/ && chown -R $U: /home/$U/.ssh && chmod 700 /home/$U/.ssh
 loginctl enable-linger $U        # obrigatório: deixa o bot no ar depois que você sai do SSH
 exit
@@ -799,6 +799,8 @@ Baixe o teste das travas e rode (gasta 7 chamadas curtas do Claude Code; leva de
 curl -fsSLo testes/testar_travas.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/09-systemd-e-testes/testes/testar_travas.py
 python3 testes/testar_travas.py
 ```
+
+Apague também a isca da etapa 5, que não precisa mais ficar na VPS: `rm -r fora`.
 
 O teste importa o seu `bot.py` e usa os nomes do texto (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): se você renomeou algo, ele quebra. Ele usa uma área e uma auditoria **temporárias** (não mexe no bot no ar) e monta duas armadilhas de propósito: um `settings.json` que libera `rm` (o bot tem de ignorar) e um arquivo-isca com um segredo falso **fora** da área (a IA não pode mostrar o conteúdo). Saída esperada: todas as linhas `PASSOU ...` e, no fim, `TUDO OK`.
 

@@ -26,7 +26,7 @@ The complete file for each step (the answer key) is in `etapas/NN-nome/bot.py` i
 ```bash
 # as root
 U=maria                          # replace maria with the name you want
-adduser $U                       # asks for a password
+adduser $U                       # asks for a password; for the other questions you can just press Enter
 mkdir -p /home/$U/.ssh && cp ~/.ssh/authorized_keys /home/$U/.ssh/ && chown -R $U: /home/$U/.ssh && chmod 700 /home/$U/.ssh
 loginctl enable-linger $U        # required: keeps the bot running after you log out of SSH
 exit
@@ -807,6 +807,8 @@ Download the safeguard test and run it (uses 7 short Claude Code calls; takes fr
 curl -fsSLo testes/testar_travas.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/09-systemd-e-testes/testes/testar_travas.py
 python3 testes/testar_travas.py
 ```
+
+Also delete the bait from step 5, which no longer needs to stay on the VPS: `rm -r fora`.
 
 The test imports your `bot.py` and uses the names from this guide (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): if you renamed anything, it will fail. It uses a **temporary** area and audit log (it won’t touch the running bot) and sets up two deliberate traps: a `settings.json` that allows `rm` (the bot must ignore it) and a decoy file with a fake secret **outside** the area (the AI must not reveal its contents). Expected output: every `PASSOU ...` line and, at the end, `TUDO OK`.
 
