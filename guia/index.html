@@ -238,6 +238,7 @@ python3 ferramentas/telegram_falso.py servidor
 TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso python3 bot.py</pre>
     <span class="lbl">Saída esperada</span>
 <pre class="out">conectado como @bot_falso_bot</pre>
+    <p>Salve o código desta etapa (no bloco abaixo, ou baixe com o <code>curl</code>) como <code>bot.py</code> dentro da pasta do bot, <code>~/kits/telegram-vps-remoto</code>. Se a porta 8081 estiver ocupada, use <code>--porta 8082</code> no servidor e no <code>fala</code>, e <code>TELEGRAM_API=http://127.0.0.1:8082</code>.</p>
     <!-- codigo:02-token-e-env -->
     <p class="gab">Quer pular a digitação? Baixe o <code>bot.py</code> pronto desta etapa (substitui o seu):</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/02-token-e-env/bot.py</pre>
@@ -277,7 +278,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/02-token-e-env/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/02-token-e-env/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
@@ -291,6 +292,7 @@ python3 ferramentas/telegram_falso.py fala --de 111 "oi"</pre>
     <span class="lbl">Saída esperada</span>
 <pre class="out">você (111) → oi
 bot → Você disse: oi</pre>
+    <p>A cada etapa nova: pare o bot (Ctrl+C no terminal 2), troque o <code>bot.py</code> e rode de novo. O Telegram falso (terminal 1) fica no ar o tempo todo.</p>
     <!-- codigo:03-eco -->
     <p class="gab">Quer pular a digitação? Baixe o <code>bot.py</code> pronto desta etapa (substitui o seu):</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/03-eco/bot.py</pre>
@@ -352,7 +354,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/03-eco/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/03-eco/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
@@ -366,6 +368,7 @@ python3 ferramentas/telegram_falso.py fala --de 111 "/start"</pre>
     <span class="lbl">Saída esperada</span>
 <pre class="out">bot → Este bot é privado.          (e no terminal 2: recusado: from.id=111)
 bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer coisa eu pergunto.</pre>
+    <p>A variável escrita na frente do comando (<code>DONOS=111 python3 bot.py</code>) vale mais que a do <code>.env</code>: assim você testa sem mexer no arquivo.</p>
     <p><strong>Para achar o seu número no bot de verdade:</strong></p>
     <ul>
       <li>deixe <code>DONOS=</code> vazio no <code>.env</code>, com o token real;</li>
@@ -444,7 +447,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/04-donos/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/04-donos/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
@@ -471,6 +474,7 @@ python3 ferramentas/telegram_falso.py fala --de 111 "leia o arquivo $PWD/fora/cr
 bot → Não consegui apagar a pasta logs …       (o comando foi negado)
 3
 bot → Não consigo ler esse arquivo …          (isca-7f3k9q nunca aparece)</pre>
+    <p>Da etapa 5 em diante cada resposta passa pelo Claude e leva de 10 a 60 segundos. O <code>fala</code> espera até 120 s; numa máquina lenta, use <code>--espera 200</code>.</p>
     <!-- codigo:05-leitura -->
     <p class="gab">Quer pular a digitação? Baixe o <code>bot.py</code> pronto desta etapa (substitui o seu):</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/05-leitura/bot.py</pre>
@@ -593,7 +597,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/05-leitura/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/05-leitura/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
@@ -830,7 +834,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/06-proposta-e-validador/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/06-proposta-e-validador/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
@@ -1115,7 +1119,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/07-sim-e-execucao/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/07-sim-e-execucao/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
@@ -1418,13 +1422,13 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/08-auditoria/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/08-auditoria/bot.py" target="_blank" rel="noopener">ver no GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
   <div class="step"><div class="b">9</div><div>
     <h3>Testes das travas e o bot ligado de vez</h3>
-    <p>O teste das travas usa uma área temporária e monta duas armadilhas: uma configuração que libera <code>rm</code> (o bot tem de ignorar) e um arquivo com segredo falso fora da área (a IA não pode mostrar o conteúdo). Leva uns 3 a 4 minutos.</p>
+    <p>O teste das travas usa uma área temporária e monta duas armadilhas: uma configuração que libera <code>rm</code> (o bot tem de ignorar) e um arquivo com segredo falso fora da área (a IA não pode mostrar o conteúdo). Leva de meio minuto a uns 4 minutos.</p>
 <pre>curl -fsSLo testes/testar_travas.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/09-systemd-e-testes/testes/testar_travas.py
 python3 testes/testar_travas.py</pre>
     <span class="lbl">Saída esperada</span>

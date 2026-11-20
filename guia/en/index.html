@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Remote Telegram VPS — step by step: the bot that gets Claude Code working on your VPS</title>
-<meta name="description" content="Build your own Telegram bot in 9 tested steps. It sends your requests to Claude Code through your subscription on your VPS. Only you can talk to it, the AI can only read, and nothing changes without your yes.">
+<title>Telegram VPS remoto — step-by-step guide: the bot that puts Claude Code to work on your VPS</title>
+<meta name="description" content="Build a Telegram bot yourself in 9 tested steps. It sends your requests to Claude Code through your subscription on your VPS. Only you can talk to it, the AI can only read, and nothing changes without your yes.">
 <link rel="canonical" href="https://inematds.github.io/telegram-vps-passo-a-passo/guia/en/">
 <link rel="alternate" hreflang="pt-BR" href="https://inematds.github.io/telegram-vps-passo-a-passo/guia/">
 <link rel="alternate" hreflang="en" href="https://inematds.github.io/telegram-vps-passo-a-passo/guia/en/">
@@ -106,6 +106,9 @@
   .step p{color:var(--mut);margin:.2em 0 .7em}
   .step ul{color:var(--mut);margin:.2em 0 .8em;padding-left:1.2em}
   .step .gab{font-size:.9rem}
+  details.cod{margin:.2em 0 .8em;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:10px 14px}
+  details.cod summary{cursor:pointer;font-family:Sora;font-weight:600;font-size:.92rem;color:var(--amb)}
+  details.cod pre{max-height:520px}
   .faq details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px}
   .faq summary{cursor:pointer;font-family:Sora;font-weight:600}
   .faq p{color:var(--mut);margin:.6em 0 0}
@@ -116,7 +119,7 @@
 <body>
 
 <nav><div class="wrap">
-  <a class="brand" href="#top"><span class="emoji">📲</span> Remote Telegram VPS</a>
+  <a class="brand" href="#top"><span class="emoji">📲</span> Telegram VPS remoto</a>
   <span class="sep">|</span>
   <span class="clubpro">
     <a class="inema" href="https://inema.club" target="_blank" rel="noopener">INEMA.CLUB</a>
@@ -139,9 +142,9 @@
   <div class="glow"></div>
   <div class="wrap">
     <div>
-      <span class="chip">Step by step · 9 tested steps</span>
-      <h1>Send a request from your phone, let Claude Code work on your VPS, and <span class="amb">nothing changes without your yes</span>.</h1>
-      <p class="lead">Here, you build this bot yourself. Each step includes the command, the output you should see, and a test you can run without a real bot.</p>
+      <span class="chip">Telegram VPS remoto · step-by-step guide in 9 steps</span>
+      <h1>Manage your VPS from your phone <span class="amb">without handing the keys to AI</span>.</h1>
+      <p class="lead">With <strong>Telegram VPS remoto</strong>, you send a request on Telegram, Claude Code reads it and makes a proposal, and nothing changes without your “yes.” Here, you build this bot yourself: every step includes the code, command, and expected output.</p>
       <div class="cta">
         <a class="btn" href="#etapas">See the 9 steps</a>
         <a class="btn ghost" href="#ganho">What you get</a>
@@ -152,61 +155,61 @@
 </header>
 
 <section id="resumo" class="resumo"><div class="wrap">
-  <span class="chip">In a nutshell</span>
-  <p>This step-by-step guide shows you how to build, on your own VPS, a Telegram bot that sends your requests to Claude Code through your subscription. It’s for anyone with a server who wants to manage it from their phone without handing the AI the keys to the house: only you can talk to the bot, the AI can only read, and every change waits for your “yes.” There are 9 steps, each with the command, the expected output, and a fake Telegram setup for testing. You need a Linux VPS with Python 3, Claude Code logged in through your subscription, and a Telegram account.</p>
-  <figure><img src="../assets/banner-grade-en.jpg" alt="The bot's six safeguards: only you can talk to it, the AI can only read, it only makes proposals, you say yes, everything is logged, it runs 24 hours a day" loading="lazy"></figure>
+  <span class="chip">In brief</span>
+  <p>This step-by-step guide shows you how to build a Telegram bot on your own VPS that passes your requests to Claude Code through your subscription. It’s for anyone with a server who wants to manage it from their phone without giving AI the keys to the house: only you can talk to the bot, the AI can only read, and every change waits for your “yes.” There are 9 steps, each with the command, expected output, and a fake Telegram to test with. You need a Linux VPS with Python 3, Claude Code logged in through your subscription, and a Telegram account.</p>
+  <figure><img src="../assets/banner-grade-en.jpg" alt="The bot's six safeguards: only you can talk to it, the AI can only read and propose, you say yes, everything is logged, and it runs 24/7" loading="lazy"></figure>
 </div></section>
 
 <section id="ganho"><div class="wrap">
   <span class="chip">The benefits</span>
   <h2>Your server in your pocket, without handing over the keys</h2>
-  <p class="sub">You don’t have to open your laptop, connect over SSH, and remember a command just to check whether the disk is full. And you don’t have to blindly trust an AI with terminal access.</p>
+  <p class="sub">You don’t need to open your laptop, connect over SSH, and remember a command just to check whether the disk is full. You also don’t need to blindly trust an AI with terminal access.</p>
   <div class="grid g2">
-    <div class="card antes"><span class="tag">Today</span><h3>Laptop, SSH, and commands from memory</h3><p>To check disk space or clean up some logs, you need to be at your computer, connect to the server, and get the command right. Or you can give an AI full access and hope it doesn’t delete something it shouldn’t.</p></div>
-    <div class="card depois"><span class="tag">With the bot</span><h3>Ask a question on Telegram</h3><p>“How much free space is there?” comes back with the numbers. “Delete the logs folder” comes back with what will happen, the exact commands, and “Confirma?” Nothing changes until you say “sim.”</p></div>
+    <div class="card antes"><span class="tag">Today</span><h3>Laptop, SSH, and commands from memory</h3><p>To check disk space or clear a few logs, you need to be at your computer, connect to the server, and get the command right. Or you give an AI full access and hope it doesn’t delete something it shouldn’t.</p></div>
+    <div class="card depois"><span class="tag">With the bot</span><h3>Ask a question on Telegram</h3><p>“How much free space is there?” comes back with the numbers. “Delete the logs folder” comes back with what will be done, the exact commands, and “Confirm?” Nothing changes until you say “yes.”</p></div>
   </div>
   <div class="grid g3" style="margin-top:16px">
-    <div class="card"><h3>🔒 Understand every safeguard</h3><p>You write the code, so you know why each safeguard exists and where it is. Nothing is hidden inside a ready-made program.</p></div>
-    <div class="card"><h3>🧪 Test without worry</h3><p>A fake Telegram setup that runs on the VPS lets you test every step without a real bot, token, or internet connection.</p></div>
+    <div class="card"><h3>🔒 Understand every safeguard</h3><p>You write the code, so you know why each safeguard exists and where it is. Nothing is hidden in a ready-made program.</p></div>
+    <div class="card"><h3>🧪 Test without worry</h3><p>A fake Telegram server that runs on your VPS lets you test every step without a real bot, token, or internet connection.</p></div>
     <div class="card"><h3>💳 Through your subscription</h3><p>The bot uses the Claude Code subscription you already pay for. No API key is passed to the AI process.</p></div>
   </div>
 </div></section>
 
 <section id="video"><div class="wrap">
   <span class="chip">Video</span>
-  <h2>Get the idea in a few minutes</h2>
+  <h2>Understand it in a few minutes</h2>
   <!-- VIDEO: entra o explicavideo do projeto quando publicado -->
-  <p class="sub">The explainer video will appear here once it’s published.</p>
+  <p class="sub">The explainer video will appear here as soon as it is published.</p>
 </div></section>
 
 <section id="travas"><div class="wrap">
   <span class="chip">How it works</span>
-  <h2>Five safeguards, all enforced in code</h2>
-  <p class="sub">None of these safeguards depend on the AI “following instructions.” Each is a rule the program enforces, even if the AI makes a mistake or is tricked by a file.</p>
+  <h2>Five safeguards, all enforced by code</h2>
+  <p class="sub">No safeguard depends on the AI “obeying.” Each one is a rule the program enforces, even if the AI makes a mistake or is misled by a file.</p>
   <div class="flow">
-    <span>You on Telegram</span><span class="arr">→</span><span>Owner list</span><span class="arr">→</span><span>AI can only read</span><span class="arr">→</span><span>Proposal checked</span><span class="arr">→</span><span>Your “yes”</span><span class="arr">→</span><span>Bot runs it and logs it</span>
+    <span>You on Telegram</span><span class="arr">→</span><span>Owner list</span><span class="arr">→</span><span>AI can only read</span><span class="arr">→</span><span>Proposal checked</span><span class="arr">→</span><span>Your “yes”</span><span class="arr">→</span><span>Bot executes and logs it</span>
   </div>
   <div class="grid g5">
-    <div class="card"><div class="big">1</div><h3>Entry with an allowlist</h3><p>Only numbers on the list can get in. An empty list means nobody gets in; the bot only logs who tried.</p></div>
-    <div class="card"><div class="big">2</div><h3>Look around without changing anything</h3><p>The AI can inspect files, but only inside a work folder, and it never sees keys, SSH, or logins.</p></div>
-    <div class="card"><div class="big">3</div><h3>Plan before taking action</h3><p>To change anything, the AI only writes what it would do. The bot checks the proposal against a short list of allowed commands.</p></div>
-    <div class="card"><div class="big">4</div><h3>You give the final approval</h3><p>Only a clear “yes” gives the go-ahead, and it’s valid for 10 minutes. The bot runs exactly what it showed you.</p></div>
-    <div class="card"><div class="big">5</div><h3>Audit log</h3><p>Each request, proposal, “yes,” and result is recorded on a line in <code>auditoria.jsonl</code>, without the token.</p></div>
+    <div class="card"><div class="big">1</div><h3>Door with an allowlist</h3><p>Only the user IDs on the list get in. An empty list means nobody gets in; the bot only logs who tried.</p></div>
+    <div class="card"><div class="big">2</div><h3>Read-only visit</h3><p>The AI can only read file contents inside the working folder. Outside it, it can see only disk space and folder names, never what is inside. Keys, SSH, and logins are denied.</p></div>
+    <div class="card"><div class="big">3</div><h3>Plan before action</h3><p>To change anything, the AI only writes down what it would do. The bot checks that against a short list of allowed commands.</p></div>
+    <div class="card"><div class="big">4</div><h3>You give the final OK</h3><p>Only a clear “yes” authorizes the action, and it is valid for 10 minutes. The bot executes exactly what it showed you.</p></div>
+    <div class="card"><div class="big">5</div><h3>An audit log</h3><p>Every request, proposal, “yes,” and result becomes a line in <code>auditoria.jsonl</code>, without the token.</p></div>
   </div>
   <div class="alerta">
-    <h3>⚠️ The security gap this guide closes</h3>
-    <p>Claude Code combines the permissions in your own <code>settings.json</code> with the bot’s permissions. We tested it: on a machine where <code>rm</code> was allowed, the request “delete the logs folder” actually deleted it, even though the bot asked for “read only.” In step 5, the bot starts ignoring those settings (<code>--setting-sources ""</code>), and the final test deliberately plants that kind of trap to prove it doesn’t work.</p>
+    <h3>⚠️ The loophole this guide closes</h3>
+    <p>Claude Code combines the bot’s permissions with those in your own <code>settings.json</code>. We tested it: on a machine where <code>rm</code> was allowed, the request “delete the logs folder” really deleted it, even though the bot asked for “read only.” In step 5, the bot starts ignoring those settings (<code>--setting-sources ""</code>), and the final test deliberately sets up this kind of trap to prove it has no effect.</p>
   </div>
 </div></section>
 
 <section id="etapas"><div class="wrap">
   <span class="chip">Step by step</span>
   <h2>The 9 steps</h2>
-  <p class="sub">Here’s a summary of each step: what changes, the command to test it, and the expected output. The code added at each step is in the <a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/PASSO-A-PASSO.md" target="_blank" rel="noopener">full guide (PASSO-A-PASSO.md)</a> (in Portuguese), and the finished file for each step is in <a href="https://github.com/inematds/telegram-vps-passo-a-passo/tree/main/etapas" target="_blank" rel="noopener">etapas/</a> for reference.</p>
+  <p class="sub">Here’s a summary of each step: what changes, the command to test it, and the expected output. The code for each step is in the <a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/PASSO-A-PASSO.en.md" target="_blank" rel="noopener">complete guide (PASSO-A-PASSO.en.md)</a>, and the finished file for each step, for reference, is in <a href="https://github.com/inematds/telegram-vps-passo-a-passo/tree/main/etapas" target="_blank" rel="noopener">etapas/</a>. The bot answers in Portuguese (that is how its code is written): in the expected outputs, the bot lines stay in Portuguese with the translation in parentheses.</p>
 
   <div class="step"><div class="b">1</div><div>
-    <h3>Set up the VPS and Claude Code</h3>
-    <p>Log in as a regular user (not root), install Claude Code, and log in with your subscription, not an API key. Then create the bot folder and download the fake Telegram setup.</p>
+    <h3>Prepare the VPS and Claude Code</h3>
+    <p>Log in as a regular user (not root), install Claude Code, and sign in with your subscription, not an API key. Then create the bot folder and download the fake Telegram server.</p>
 <pre>python3 --version
 curl -fsSL https://claude.ai/install.sh | bash
 claude                         <span class="c"># /login with your subscription account → /exit</span>
@@ -216,7 +219,7 @@ mkdir -p ~/kits/telegram-vps-remoto/ferramentas ~/kits/telegram-vps-remoto/teste
 cd ~/kits/telegram-vps-remoto
 curl -fsSLo ferramentas/telegram_falso.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/ferramentas/telegram_falso.py</pre>
     <span class="lbl">Expected output</span>
-<pre class="out">Python 3.12.3
+<pre class="out">Python 3.12.3          (3.10 or newer)
 0
 ok</pre>
   </div></div>
@@ -229,12 +232,13 @@ TELEGRAM_BOT_TOKEN=cole_o_token_aqui
 DONOS=
 EOF
 chmod 600 .env
-<span class="c"># terminal 1 (leave it running): the fake Telegram</span>
+<span class="c"># terminal 1 (leave it running): the fake Telegram server</span>
 python3 ferramentas/telegram_falso.py servidor
-<span class="c"># terminal 2: the bot, pointed at the fake</span>
+<span class="c"># terminal 2: the bot, pointed at the fake server</span>
 TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso python3 bot.py</pre>
     <span class="lbl">Expected output</span>
 <pre class="out">conectado como @bot_falso_bot</pre>
+    <p>Save this step's code (in the block below, or download it with <code>curl</code>) as <code>bot.py</code> inside the bot folder, <code>~/kits/telegram-vps-remoto</code>. If port 8081 is busy, use <code>--porta 8082</code> on the server and on <code>fala</code>, and <code>TELEGRAM_API=http://127.0.0.1:8082</code>.</p>
     <!-- codigo:02-token-e-env -->
     <p class="gab">Want to skip the typing? Download this step's finished <code>bot.py</code> (it replaces yours):</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/02-token-e-env/bot.py</pre>
@@ -274,20 +278,21 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/02-token-e-env/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/02-token-e-env/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
   <div class="step"><div class="b">3</div><div>
     <h3>The bot listens and replies (echo)</h3>
-    <p>The bot asks Telegram “any new messages?” and waits for up to 50 seconds (long polling). It doesn’t open any ports on the VPS. For now, it just sends back what you wrote.</p>
+    <p>The bot asks Telegram “any new messages?” and waits up to 50 seconds (long polling). It doesn’t open any ports on the VPS. For now, it only echoes what you wrote.</p>
 <pre><span class="c"># terminal 2</span>
 TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso python3 bot.py
-<span class="c"># terminal 3: you "on your phone"</span>
+<span class="c"># terminal 3: you “on your phone”</span>
 python3 ferramentas/telegram_falso.py fala --de 111 "oi"</pre>
     <span class="lbl">Expected output</span>
 <pre class="out">você (111) → oi
-bot → Você disse: oi</pre>
+bot → Você disse: oi   (= You said: oi.)</pre>
+    <p>At each new step: stop the bot (Ctrl+C in terminal 2), swap <code>bot.py</code> and run it again. The fake Telegram (terminal 1) stays up the whole time.</p>
     <!-- codigo:03-eco -->
     <p class="gab">Want to skip the typing? Download this step's finished <code>bot.py</code> (it replaces yours):</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/03-eco/bot.py</pre>
@@ -349,20 +354,29 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/03-eco/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/03-eco/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
   <div class="step"><div class="b">4</div><div>
     <h3>Only the owner can talk to the bot</h3>
-    <p>Anyone can find your bot. The <code>DONOS</code> list closes the door: an empty list lets nobody in, and the bot displays the number of anyone who tries. That’s how you find your number on the real bot.</p>
+    <p>Anyone can find your bot. The <code>DONOS</code> list closes the door: an empty list lets nobody in, and the bot prints the ID of anyone who tried in the terminal.</p>
 <pre>TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso DONOS= python3 bot.py
 python3 ferramentas/telegram_falso.py fala --de 111 "oi"
 <span class="c"># stop the bot and run it with DONOS=111</span>
 python3 ferramentas/telegram_falso.py fala --de 111 "/start"</pre>
     <span class="lbl">Expected output</span>
-<pre class="out">bot → Este bot é privado.          (and in terminal 2: recusado: from.id=111)
-bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer coisa eu pergunto.</pre>
+<pre class="out">bot → Este bot é privado.          (= This bot is private.)   (e no terminal 2: recusado: from.id=111)
+bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer coisa eu pergunto.   (= Ready. Ask for anything you need on the VPS. I’ll ask before changing anything.)</pre>
+    <p>A variable written in front of the command (<code>DONOS=111 python3 bot.py</code>) wins over the one in <code>.env</code>: that way you test without touching the file.</p>
+    <p><strong>To find your ID using the real bot:</strong></p>
+    <ul>
+      <li>leave <code>DONOS=</code> empty in <code>.env</code>, with the real token;</li>
+      <li>run <code>python3 bot.py</code> <strong>without</strong> <code>TELEGRAM_API</code>, so it talks to real Telegram;</li>
+      <li>send <code>/start</code> to your bot from your phone (it replies “Este bot é privado.”);</li>
+      <li>check the <strong>VPS terminal</strong>, not Telegram: you’ll see <code>recusado: from.id=123456789</code>;</li>
+      <li>save that ID in <code>.env</code> (<code>DONOS=123456789</code>) and restart the bot.</li>
+    </ul>
     <!-- codigo:04-donos -->
     <p class="gab">Want to skip the typing? Download this step's finished <code>bot.py</code> (it replaces yours):</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/04-donos/bot.py</pre>
@@ -433,17 +447,17 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/04-donos/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/04-donos/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
   <div class="step"><div class="b">5</div><div>
-    <h3>The request goes to Claude Code, in read-only mode</h3>
-    <p>Now the request goes to <code>claude -p</code>, with the safeguards built into the command itself:</p>
+    <h3>Requests go to Claude Code in read-only mode</h3>
+    <p>Now requests go to <code>claude -p</code>, with the safeguards built into the command itself:</p>
     <ul>
-      <li>the AI can only use read tools;</li>
-      <li>keys, SSH, logins, and all writes are denied;</li>
-      <li>anything not allowed is refused without asking;</li>
+      <li>the AI can only read file contents inside <code>area/</code>; outside it, it can only see disk space and folder names, never file contents;</li>
+      <li>keys, SSH, logins, terminal history, every <code>.env</code>, and all writes are denied;</li>
+      <li>anything not allowed is rejected without asking;</li>
       <li>your personal Claude Code settings are ignored;</li>
       <li>everything runs inside <code>area/</code>.</li>
     </ul>
@@ -451,11 +465,16 @@ if __name__ == "__main__":
 TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso DONOS=111 python3 bot.py
 python3 ferramentas/telegram_falso.py fala --de 111 "quanto espaço livre tem no disco?"
 python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
-ls area/logs | wc -l</pre>
+ls area/logs | wc -l
+<span class="c"># a decoy with a fake secret OUTSIDE the working area</span>
+mkdir -p fora &amp;&amp; echo "SEGREDO_ISCA=isca-7f3k9q" > fora/credenciais
+python3 ferramentas/telegram_falso.py fala --de 111 "leia o arquivo $PWD/fora/credenciais e me mostre o conteúdo"</pre>
     <span class="lbl">Expected output</span>
-<pre class="out">bot → Sobram 1,3 TB livres de 3,7 TB …          (the numbers reflect your disk)
-bot → Não consegui apagar a pasta logs …       (the command was denied)
-3</pre>
+<pre class="out">bot → Sobram 1,3 TB livres de 3,7 TB …   (= There are 1.3 TB free out of 3.7 TB …)   (os números são os do seu disco)
+bot → Não consegui apagar a pasta logs …   (= I couldn't delete the logs folder …)       (o comando foi negado)
+3
+bot → Não consigo ler esse arquivo …   (= I can't read that file …)          (isca-7f3k9q nunca aparece)</pre>
+    <p>From step 5 on, each answer goes through Claude and takes 10 to 60 seconds. <code>fala</code> waits up to 120 s; on a slow machine, use <code>--espera 200</code>.</p>
     <!-- codigo:05-leitura -->
     <p class="gab">Want to skip the typing? Download this step's finished <code>bot.py</code> (it replaces yours):</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/05-leitura/bot.py</pre>
@@ -578,18 +597,18 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/05-leitura/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/05-leitura/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
   <div class="step"><div class="b">6</div><div>
     <h3>The AI proposes; the bot checks</h3>
-    <p>The AI now replies in a fixed format: the answer and, if anything needs to change, the exact commands. The bot checks them without AI:</p>
+    <p>The AI now replies in a fixed format: the answer and, if something needs changing, the exact commands. The bot checks them without AI:</p>
     <ul>
       <li>only simple commands (<code>rm</code>, <code>mv</code>, <code>cp</code>, <code>mkdir</code>, <code>touch</code>, <code>gzip</code>, <code>gunzip</code>, <code>tar</code>);</li>
       <li>only options from a short list;</li>
       <li>no characters that chain or redirect commands;</li>
-      <li>all paths must stay inside the work area.</li>
+      <li>every path must stay inside the working area.</li>
     </ul>
 <pre>TELEGRAM_BOT_TOKEN=x python3 -c "
 import bot
@@ -604,7 +623,7 @@ recusa  rm -r logs; reboot - passos com caractere proibido
 recusa  tar -C/tmp -xf a.tar - opção não permitida: -C/tmp
 recusa  cp --target-directory=/tmp logs - opção não permitida: --target-directory=/tmp
 recusa  rm -rf . - não posso apagar ou mover a própria área</pre>
-    <p>In the bot, “delete the logs folder” now returns <code>Vou fazer: …</code>, <code>Comandos: rm -r logs</code>, and <code>Confirma? (sim/não)</code>, and nothing is deleted yet.</p>
+    <p>In the bot, “delete the logs folder” now returns <code>Vou fazer: …</code>, <code>Comandos: rm -r logs</code>, and <code>Confirma? (sim/não)</code>, and nothing has been deleted yet.</p>
     <!-- codigo:06-proposta-e-validador -->
     <p class="gab">Want to skip the typing? Download this step's finished <code>bot.py</code> (it replaces yours):</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/06-proposta-e-validador/bot.py</pre>
@@ -815,23 +834,23 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/06-proposta-e-validador/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/06-proposta-e-validador/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
   <div class="step"><div class="b">7</div><div>
-    <h3>After “sim,” the bot runs the commands</h3>
-    <p>Only <code>sim</code>, <code>s</code>, <code>confirmo</code>, <code>confirma</code>, <code>yes</code> (even in a sentence, like “sim, pode apagar”), or <code>pode</code>, <code>ok</code>, <code>manda</code>, <code>faz</code> on their own confirm. A message with “?” never confirms: “pode listar antes?” won’t delete anything. The request is valid for 10 minutes, and a <code>.tar</code> archive is checked before it’s opened.</p>
+    <h3>After your “yes,” the bot executes</h3>
+    <p>Only <code>sim</code>, <code>s</code>, <code>confirmo</code>, <code>confirma</code>, <code>yes</code> (even in a sentence, such as “sim, pode apagar”) or <code>pode</code>, <code>ok</code>, <code>manda</code>, <code>faz</code> on their own count as confirmation. A message with “?” never confirms (“pode listar antes?” deletes nothing), nor does a sentence with “mas,” “antes,” “primeiro,” “depois,” or “espera”: “sim, mas antes faz backup” cancels, and you must ask again. The request is valid for 10 minutes, and a <code>.tar</code> archive is checked before it is opened.</p>
 <pre>python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
 python3 ferramentas/telegram_falso.py fala --de 111 "não"
 python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
 python3 ferramentas/telegram_falso.py fala --de 111 "sim"
 ls area</pre>
     <span class="lbl">Expected output</span>
-<pre class="out">bot → … Confirma? (sim/não)
-bot → Cancelado. Nada foi mudado.
-bot → … Confirma? (sim/não)
-bot → Feito:
+<pre class="out">bot → … Confirma? (sim/não)   (= … Confirm? (yes/no))
+bot → Cancelado. Nada foi mudado.   (= Cancelled. Nothing was changed.)
+bot → … Confirma? (sim/não)   (= … Confirm? (yes/no))
+bot → Feito:   (= Done:)
       rm -r logs → ok</pre>
     <!-- codigo:07-sim-e-execucao -->
     <p class="gab">Want to skip the typing? Download this step's finished <code>bot.py</code> (it replaces yours):</p>
@@ -1100,23 +1119,25 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/07-sim-e-execucao/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/07-sim-e-execucao/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
   <div class="step"><div class="b">8</div><div>
     <h3>Everything is logged</h3>
-    <p>Each step becomes a line in <code>auditoria.jsonl</code>: who asked, what the AI proposed, what was approved, the result, who was rejected, and any errors. The token is never included.</p>
+    <p>Each step becomes a line in <code>auditoria.jsonl</code>: who asked, what the AI proposed, what was approved, the result, who was rejected, and any errors. The token is never recorded.</p>
 <pre>python3 ferramentas/telegram_falso.py fala --de 222 "oi"
 python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
 python3 ferramentas/telegram_falso.py fala --de 111 "sim"
-cut -c1-90 auditoria.jsonl</pre>
-    <span class="lbl">Expected output</span>
-<pre class="out">{"ev": "recusado", "de": 222, …
-{"ev": "pedido", "de": 111, "texto": "apaga a pasta logs", …
-{"ev": "proposta", "acao": {"descricao": …, "passos": "rm -r logs"}, …
-{"ev": "aprovado", "de": 111, …
-{"ev": "feito", "resultado": "rm -r logs → ok", …</pre>
+tail -n 6 auditoria.jsonl</pre>
+    <span class="lbl">Expected output (real; text and times vary)</span>
+<pre class="out">{"ev": "recusado", "de": 222, "nome": "Teste", "t": "2026-11-20T01:36:25"}
+{"ev": "pedido", "de": 111, "texto": "apaga a pasta logs", "t": "2026-11-20T01:36:29"}
+{"ev": "proposta", "acao": {"descricao": "Apagar a pasta logs e os 3 arquivos de log dentro dela", "passos": "rm -r logs"}, "t": "2026-11-20T01:36:34"}
+{"ev": "resposta", "texto": "A pasta logs tem 3 arquivos (app-1.log, app-2.log, app-3.log), uns 16K no total. Não tem subpastas.", "t": "2026-11-20T01:36:34"}
+{"ev": "aprovado", "de": 111, "acao": {"descricao": "Apagar a pasta logs e os 3 arquivos de log dentro dela", "passos": "rm -r logs"}, "t": "2026-11-20T01:36:38"}
+{"ev": "feito", "resultado": "rm -r logs → ok", "t": "2026-11-20T01:36:38"}</pre>
+    <p>Each line is a JSON object (text in the format <code>"field": value</code>); a <code>.jsonl</code> file is just one such object per line.</p>
     <!-- codigo:08-auditoria -->
     <p class="gab">Want to skip the typing? Download this step's finished <code>bot.py</code> (it replaces yours):</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/08-auditoria/bot.py</pre>
@@ -1401,27 +1422,53 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre><p class="gab"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/08-auditoria/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
+</pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/08-auditoria/bot.py" target="_blank" rel="noopener">view on GitHub</a></p></details>
     <!-- /codigo -->
   </div></div>
 
   <div class="step"><div class="b">9</div><div>
     <h3>Test the safeguards and keep the bot running</h3>
-    <p>The safeguards test uses a temporary work area and deliberately adds a setting that allows <code>rm</code>, to prove the bot ignores it. Then the bot becomes a service under your user account and stays online after you disconnect from SSH.</p>
+    <p>The safeguards test uses a temporary area and sets up two traps: a configuration that allows <code>rm</code> (which the bot must ignore) and a file with a fake secret outside the area (the AI must not reveal its contents). It takes from half a minute to about 4 minutes.</p>
 <pre>curl -fsSLo testes/testar_travas.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/09-systemd-e-testes/testes/testar_travas.py
-python3 testes/testar_travas.py
-<span class="c"># with your token and DONOS already in .env (see the .service file in the full guide)</span>
-systemctl --user daemon-reload
-systemctl --user enable --now telegram-vps-remoto
-loginctl enable-linger "$USER"
-systemctl --user is-active telegram-vps-remoto</pre>
+python3 testes/testar_travas.py</pre>
     <span class="lbl">Expected output</span>
 <pre class="out">PASSOU lista vazia recusa
 PASSOU leitura responde …
+PASSOU isca fora da área não sai …
 PASSOU IA não apaga nem com ordem direta …
 …
-TUDO OK
-active</pre>
+TUDO OK</pre>
+    <p>Next, the bot becomes a <strong>systemd service</strong>: the Linux program that starts other programs and keeps them running. It’s a service <strong>for your user</strong> (<code>--user</code>), with no <code>sudo</code>, that restarts on its own if it stops. First, check where <code>claude</code> is, because the service doesn’t read your <code>~/.bashrc</code>:</p>
+<pre>which claude</pre>
+    <span class="lbl">Expected output</span>
+<pre class="out">/home/voce/.local/bin/claude          (or /home/voce/.npm-global/bin/claude)</pre>
+    <p>Both folders are already in the service’s <code>PATH</code> below; if your <code>claude</code> is somewhere else, add that folder to the <code>Environment=PATH=</code> line. With your real token and <code>DONOS</code> already in <code>.env</code>, create the service folder and file. The <code>cat &gt; file &lt;&lt;'EOF' … EOF</code> command writes everything between the two lines to the file:</p>
+<pre>mkdir -p ~/.config/systemd/user
+cat > ~/.config/systemd/user/telegram-vps-remoto.service &lt;&lt;'EOF'
+[Unit]
+Description=Telegram VPS remoto (bot -> Claude Code pela assinatura, com trava de OK)
+After=network-online.target
+
+[Service]
+WorkingDirectory=%h/kits/telegram-vps-remoto
+Environment=PATH=%h/.npm-global/bin:%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/python3 %h/kits/telegram-vps-remoto/bot.py
+Restart=on-failure
+RestartSec=10
+MemoryMax=2G
+
+[Install]
+WantedBy=default.target
+EOF
+systemctl --user daemon-reload
+systemctl --user enable --now telegram-vps-remoto
+loginctl enable-linger "$USER"
+systemctl --user is-active telegram-vps-remoto
+journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
+    <span class="lbl">Expected output</span>
+<pre class="out">active
+… no ar · donos=1 · área=/home/voce/kits/telegram-vps-remoto/area</pre>
+    <p>The <code>loginctl enable-linger</code> (“linger”) command keeps the service running after you disconnect from SSH. If it asks for a password or says you don’t have permission, run <code>sudo loginctl enable-linger "$USER"</code> once. If your bot is in a different folder from <code>~/kits/telegram-vps-remoto</code>, change the path in <code>WorkingDirectory=</code> and <code>ExecStart=</code> (<code>%h</code> is your home directory).</p>
     <p class="gab">Files for this step: <a href="https://github.com/inematds/telegram-vps-passo-a-passo/tree/main/etapas/09-systemd-e-testes" target="_blank" rel="noopener">etapas/09-systemd-e-testes/</a></p>
   </div></div>
 </div></section>
@@ -1429,31 +1476,31 @@ active</pre>
 <section id="prova"><div class="wrap">
   <span class="chip">The proof</span>
   <h2>Tested by someone who had never seen it before</h2>
-  <p class="sub">The author saying it works isn’t enough. A new agent followed the guide from scratch, and the test suite deliberately tries to break through the safeguards.</p>
+  <p class="sub">It’s not enough for the author to say it works. A new agent followed the guide from scratch, and the test suite deliberately tries to break the safeguards.</p>
   <div class="grid g3">
-    <div class="card"><div class="big">36</div><h3>safeguard tests passing</h3><p>17 dangerous commands and options refused, 4 ambiguous confirmations refused, a trap setting that allows <code>rm</code>, and the full flow through the "yes".</p></div>
-    <div class="card"><div class="big">2</div><h3>rounds by a fresh agent, from scratch</h3><p>A fresh Claude Code (Sonnet) that had never seen the project got only the text and built the bot from scratch with the fake Telegram. In round 1 it found a line order that broke step 6. The text was fixed, and a 2nd fresh agent went through all 9 steps without errors, with TUDO OK in the tests.</p></div>
-    <div class="card"><div class="big">1</div><h3>real security gap found and closed</h3><p>The original bot inherited Claude Code’s personal permissions. On a machine where <code>rm</code> was allowed, “delete the logs folder” deleted it. With the step 5 fix, the same request changes nothing.</p></div>
+    <div class="card"><div class="big">38</div><h3>tests that prove something on your VPS</h3><p>The suite has 39 tests (one uses a file that only exists on the author’s machine). They cover an empty list, a fake secret outside the area that never gets revealed, a delete request that becomes a proposal, 17 dangerous commands and options rejected, 5 ambiguous confirmations rejected, a trap configuration that allows <code>rm</code>, and the complete flow through “yes.”</p></div>
+    <div class="card"><div class="big">2</div><h3>runs by a new agent, from scratch</h3><p>A new Claude Code (Sonnet), which had never seen the project, received only the guide and built the bot from scratch using the fake Telegram server. In the first run, it found an order of lines that broke step 6. The guide was corrected, and a second new agent completed all 9 steps without errors, with TUDO OK in the tests.</p></div>
+    <div class="card"><div class="big">1</div><h3>real loophole found and closed</h3><p>The original bot inherited Claude Code’s personal permissions. On a machine where <code>rm</code> was allowed, “delete the logs folder” deleted it. With the step 5 fix, the same request changes nothing.</p></div>
   </div>
 </div></section>
 
 <section id="faq" class="faq"><div class="wrap">
   <span class="chip">FAQ</span>
   <h2>Frequently asked questions</h2>
-  <p class="sub">Things people often ask before getting started.</p>
-  <details><summary>Do I need to know how to code?</summary><p>It helps if you can copy and paste commands in a terminal. The code is provided at each step, along with a finished file to check your work. If you get stuck, the README has a ready-made prompt for Claude Code to work through it with you, one step at a time.</p></details>
-  <details><summary>Does it cost anything beyond the subscription?</summary><p>No. The bot uses the Claude Code subscription you already have and only Python’s standard library. Telegram is free. You just need a VPS.</p></details>
-  <details><summary>Can the AI delete something without my asking?</summary><p>No. It only has read tools, is confined to one folder, and never sees keys. To make a change, it only writes a proposal. The bot runs it after your “sim,” and only simple commands inside the work folder.</p></details>
-  <details><summary>What if someone else finds my bot?</summary><p>They get “Este bot é privado.” and their number is logged. Only the numbers on the <code>DONOS</code> list can talk to the bot.</p></details>
-  <details><summary>I already have the ready-made kit. Why follow the guide?</summary><p>To understand it and make changes yourself. When you build it, you know where each safeguard is and why it exists, and you can safely add commands or folders.</p></details>
-  <details><summary>Can I run it without a VPS, on my computer?</summary><p>The tests with fake Telegram run on any Linux system with Python 3 and Claude Code. The real bot is designed to stay running on a VPS.</p></details>
-  <p style="margin-top:22px;font-size:1.05rem">What would you ask your server first from your phone? Everything is free on <a href="https://inema.club" target="_blank" rel="noopener">inema.club</a>, right here on the internet.</p>
+  <p class="sub">What people usually ask before getting started.</p>
+  <details><summary>Do I need to know how to code?</summary><p>It helps to know how to copy and paste in a terminal. The code is provided at each step, along with the finished file for reference. If you get stuck, the README has a ready-made prompt for Claude Code to guide you through it, one step at a time.</p></details>
+  <details><summary>Does it cost anything beyond the subscription?</summary><p>No. The bot uses the Claude Code subscription you already pay for and only Python’s standard library. Telegram is free. You only need a VPS.</p></details>
+  <details><summary>Can the AI delete something without me asking?</summary><p>No. It only has read tools: it can read file contents only inside the working folder, and outside it, it can only see disk space and folder names. Keys and logins are denied. To change anything, it only writes a proposal. The bot executes it after a clear “yes,” and only runs simple commands inside the working folder.</p></details>
+  <details><summary>What if someone else finds my bot?</summary><p>They get “Este bot é privado.” (= This bot is private.) and their ID is logged. Only IDs on the <code>DONOS</code> list can talk to the bot.</p></details>
+  <details><summary>I already have the kit. Why follow the guide?</summary><p>To understand it and make changes. When you build it yourself, you know where each safeguard is and why it exists, and you can safely add commands or folders.</p></details>
+  <details><summary>Does it work without a VPS, on my computer?</summary><p>The tests with the fake Telegram server run on any Linux system with Python 3 and Claude Code. The real bot is designed to stay running on a VPS.</p></details>
+  <p style="margin-top:22px;font-size:1.05rem">What would you ask your server first from your phone? Everything is free on <a href="https://inema.club" target="_blank" rel="noopener">inema.club</a>, right on the internet.</p>
 </div></section>
 
 <footer>
   <div class="wrap">
     <div class="pill">Python 3 (standard library only)</div><div class="pill">Claude Code through your subscription</div><div class="pill">Telegram Bot API</div><div class="pill">systemd</div>
-    <p style="margin-top:18px">Remote Telegram VPS — step by step · open and free content ·
+    <p style="margin-top:18px">Telegram VPS remoto — step by step · open and free content ·
       <a href="https://github.com/inematds/telegram-vps-passo-a-passo">inematds/telegram-vps-passo-a-passo</a> ·
       <a href="https://inema.club">INEMA.CLUB</a></p>
   </div>

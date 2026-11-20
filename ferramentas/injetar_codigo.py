@@ -28,7 +28,7 @@ def bloco(etapa, txt):
             f'<pre>curl -fsSLo bot.py {RAW.format(etapa)}</pre>\n'
             f'    <details class="cod"><summary>{txt[1]}</summary>'
             f'<pre>{html.escape(codigo, quote=False)}</pre>'
-            f'<p class="gab"><a href="{BLOB.format(etapa)}" target="_blank" rel="noopener">{txt[2]}</a></p></details>\n'
+            f'<p class="gh"><a href="{BLOB.format(etapa)}" target="_blank" rel="noopener">{txt[2]}</a></p></details>\n'
             f'    <!-- /codigo -->')
 
 

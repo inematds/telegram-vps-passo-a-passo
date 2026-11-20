@@ -754,7 +754,7 @@ Cada linha é um objeto JSON (texto com `"campo": valor`); um arquivo `.jsonl` �
 
 ## Etapa 9 — Testes das travas e o bot ligado de vez (systemd)
 
-Baixe o teste das travas e rode (gasta 6 chamadas curtas do Claude Code; leva uns 3 a 4 minutos):
+Baixe o teste das travas e rode (gasta 6 chamadas curtas do Claude Code; leva de meio minuto a uns 4 minutos):
 
 ```bash
 curl -fsSLo testes/testar_travas.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/09-systemd-e-testes/testes/testar_travas.py
