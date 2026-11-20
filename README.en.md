@@ -55,7 +55,7 @@ Who does what: 🧠 you (on the VPS) · ⚙️ script/service · 🤖 Claude Cod
 |---|---|
 | `PASSO-A-PASSO.en.md` | the text for the 9 steps, with the code used in each |
 | `etapas/NN-*/bot.py` | the complete `bot.py` at the end of each step |
-| `etapas/09-systemd-e-testes/testes/testar_travas.py` | safeguard tests (6 short Claude Code calls) |
+| `etapas/09-systemd-e-testes/testes/testar_travas.py` | safeguard tests (7 short Claude Code calls) |
 | `etapas/09-systemd-e-testes/systemd/telegram-vps-remoto.service` | user systemd unit |
 | `ferramentas/telegram_falso.py` | imitates `getMe`, `getUpdates`, `sendMessage`, `sendChatAction`; `fala` sends a message as someone |
 | `validacao/` | reports from the new agent that followed the instructions from scratch |
@@ -63,13 +63,13 @@ Who does what: 🧠 you (on the VPS) · ⚙️ script/service · 🤖 Claude Cod
 **Safeguards (in the code):**
 
 1. An empty `DONOS` rejects everyone; the bot logs the `from.id` of anyone who tries.
-2. The AI runs with `--allowedTools Read(./**) Glob(./**) Grep(./**) Bash(df/du/ls/free/uptime)`: file contents are accessible only inside `area/`; outside it, only disk space and folder names. `--disallowedTools` blocks keys and logins (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), `~/.bash_history`, every `.env`, writing, `sudo`, `curl`, `cat`…; `--permission-mode dontAsk`.
+2. The AI runs with `--allowedTools Read(./**) Glob(./**) Grep(./**) Bash(df/ls/free/uptime)`: file contents are accessible only inside `area/`; outside it, only disk space and folder names. `--disallowedTools` blocks keys and logins (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), `~/.bash_history`, every `.env`, writing, `sudo`, `curl`, `cat`…; `--permission-mode dontAsk`.
 3. `--setting-sources ""` and `--strict-mcp-config`: without these, “allow” rules in your `~/.claude/settings.json` are added and break the safeguard (observed: “delete the logs folder” deleted it).
 4. The action is supplied in a fixed JSON schema (`--json-schema`); `validar()` accepts only `rm mv cp mkdir touch gzip gunzip tar`, only options from the short allowlist, no `| ; $ \` < > ~ ..`, and every path (using `realpath`) must be inside `area/`.
 5. Only `sim`/`s`/`confirmo`/`confirma`/`yes` (or `pode`/`ok`/`manda`/`faz` on their own) confirm; never with `?`, or with `mas`/`antes`/`primeiro`/`depois`/`espera` (“yes, but make a backup first” cancels). Valid for 10 minutes. The bot executes the action, without a shell. `tar -x` is listed first (rejects `/`, `..`, and links).
 6. `auditoria.jsonl` records every event, without the token. No `ANTHROPIC_*`/`OPENAI_*`/`OPENROUTER_*`/`TELEGRAM_*` keys are passed to the Claude process.
 
-**Tests:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` (6 short Claude Code calls) uses temporary working and audit folders, places a trap `settings.json` that allows `rm`, and a fake secret outside the working folder; 39 tests, output `TUDO OK`. One of them (`chaves não saem`) uses `~/.config/inema/.env`, which exists only on the author's machine: on your VPS it passes without proving anything; the fake secret outside the working folder is what proves it.
+**Tests:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` (7 short Claude Code calls) uses temporary working and audit folders, places a trap `settings.json` that allows `rm`, and a fake secret outside the working folder; 40 tests, output `TUDO OK`. One of them (`chaves não saem`) uses `~/.config/inema/.env`, which exists only on the author's machine: on your VPS it passes without proving anything; the fake secret outside the working folder is what proves it.
 
 **Proof:** the validation is in [`validacao/`](validacao/): a new agent (Claude Code, Sonnet model) received only the text, built the bot from scratch with the fake Telegram server, and ran the tests.
 

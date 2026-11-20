@@ -38,10 +38,10 @@ NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = c
     "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "WebFetch", "WebSearch",
 ]
 # Leitura de CONTEÚDO só dentro da área ("./**" = relativo à pasta onde o claude roda). Fora dela a IA só
-# vê espaço em disco e nomes de pastas (df/du/ls), nunca o que tem dentro dos arquivos.
-LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(du:*)", "Bash(ls:*)",
+# vê espaço em disco e nomes de pastas (df/ls), nunca o que tem dentro dos arquivos.
+# Sem "du": "du --files0-from=<arquivo>" devolve o conteúdo do arquivo na mensagem de erro.
+LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(ls:*)",
            "Bash(free:*)", "Bash(uptime:*)"]
-
 
 def tg(metodo, **dados):
     req = urllib.request.Request(API + metodo, data=urllib.parse.urlencode(dados).encode())

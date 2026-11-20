@@ -175,7 +175,7 @@
   </div>
 </div></section>
 
-<section id="video"><div class="wrap">
+<section id="video" hidden><div class="wrap">
   <span class="chip">Video</span>
   <h2>Entiéndelo en pocos minutos</h2>
   <!-- VIDEO: entra o explicavideo do projeto quando publicado -->
@@ -222,25 +222,15 @@ curl -fsSLo ferramentas/telegram_falso.py https://raw.githubusercontent.com/inem
 <pre class="out">Python 3.12.3          (3.10 o posterior)
 0
 ok</pre>
+    <p><strong>De aquí en adelante, todos los comandos se ejecutan dentro de <code>~/kits/telegram-vps-remoto</code></strong> (la carpeta del bot).</p>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
     <h3>Crear el bot en BotFather y guardar el token</h3>
     <p>En Telegram, habla con <strong>@BotFather</strong>, envía <code>/newbot</code> y guarda el token en un <code>.env</code> que solo tú puedas leer. El token es la contraseña del bot: nunca va a git, a una captura de pantalla ni a un video. El primer <code>bot.py</code> solo se presenta ante Telegram.</p>
-<pre>cat > .env &lt;&lt;'EOF'
-TELEGRAM_BOT_TOKEN=cole_o_token_aqui
-DONOS=
-EOF
-chmod 600 .env
-<span class="c"># terminal 1 (deixe rodando): o Telegram falso</span>
-python3 ferramentas/telegram_falso.py servidor
-<span class="c"># terminal 2: o bot, apontando para o falso</span>
-TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso python3 bot.py</pre>
-    <span class="lbl">Salida esperada</span>
-<pre class="out">conectado como @bot_falso_bot</pre>
-    <p>Guarda el código de esta etapa (en el bloque de abajo, o descárgalo con <code>curl</code>) como <code>bot.py</code> dentro de la carpeta del bot, <code>~/kits/telegram-vps-remoto</code>. Si el puerto 8081 está ocupado, usa <code>--porta 8082</code> en el servidor y en <code>fala</code>, y <code>TELEGRAM_API=http://127.0.0.1:8082</code>.</p>
+<p><strong>Terminales:</strong> cada "terminal" es una ventana (o pestaña) con su propia conexión SSH a la VPS. Para abrir otra, abre una ventana nueva y entra de nuevo por SSH; cada terminal empieza con <code>cd ~/kits/telegram-vps-remoto</code>. El <code>cat &gt; .env &lt;&lt;'EOF' … EOF</code> (heredoc) graba en el archivo todo lo que está entre las dos líneas.</p>
     <!-- codigo:02-token-e-env -->
-    <p class="gab">¿Quieres saltarte la escritura? Descarga el <code>bot.py</code> listo de esta etapa (reemplaza el tuyo):</p>
+    <p class="gab"><strong>Primero, guarda el código de esta etapa como <code>bot.py</code></strong> en la carpeta del bot (reemplaza el anterior). Forma rápida: descárgalo con el <code>curl</code> de abajo. O escríbelo tú: <code>nano bot.py</code>, borra lo que haya, pega el código del bloque de abajo, guarda con <kbd>Ctrl+O</kbd> y <kbd>Enter</kbd>, y sal con <kbd>Ctrl+X</kbd>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/02-token-e-env/bot.py</pre>
     <details class="cod"><summary>Código de esta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Etapa 2 — o bot lê o token do .env e se apresenta ao Telegram (getMe). Ainda não conversa."""
@@ -280,21 +270,25 @@ if __name__ == "__main__":
     main()
 </pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/02-token-e-env/bot.py" target="_blank" rel="noopener">ver en GitHub</a></p></details>
     <!-- /codigo -->
-  </div></div>
+<pre>cat > .env &lt;&lt;'EOF'
+TELEGRAM_BOT_TOKEN=cole_o_token_aqui
+DONOS=
+EOF
+chmod 600 .env
+<span class="c"># terminal 1 (deixe rodando): o Telegram falso</span>
+python3 ferramentas/telegram_falso.py servidor
+<span class="c"># terminal 2: o bot, apontando para o falso</span>
+TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso python3 bot.py</pre>
+    <span class="lbl">Salida esperada</span>
+<pre class="out">conectado como @bot_falso_bot</pre>
+    <p>Si el puerto 8081 está ocupado, usa <code>--porta 8082</code> en el servidor y en <code>fala</code>, y <code>TELEGRAM_API=http://127.0.0.1:8082</code>.</p>
+      </div></div>
 
   <div class="step"><div class="b">3</div><div>
     <h3>El bot escucha y responde (eco)</h3>
     <p>El bot le pregunta a Telegram «¿hay mensajes nuevos?» y espera hasta 50 segundos (long polling). No abre ningún puerto en la VPS. Por ahora, solo devuelve lo que escribiste.</p>
-<pre><span class="c"># terminal 2</span>
-TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso python3 bot.py
-<span class="c"># terminal 3: você "no celular"</span>
-python3 ferramentas/telegram_falso.py fala --de 111 "oi"</pre>
-    <span class="lbl">Salida esperada</span>
-<pre class="out">você (111) → oi
-bot → Você disse: oi (= Dijiste: oi)</pre>
-    <p>En cada etapa nueva: detén el bot (Ctrl+C en la terminal 2), cambia el <code>bot.py</code> y córrelo de nuevo. El Telegram falso (terminal 1) queda encendido todo el tiempo.</p>
-    <!-- codigo:03-eco -->
-    <p class="gab">¿Quieres saltarte la escritura? Descarga el <code>bot.py</code> listo de esta etapa (reemplaza el tuyo):</p>
+<!-- codigo:03-eco -->
+    <p class="gab"><strong>Primero, guarda el código de esta etapa como <code>bot.py</code></strong> en la carpeta del bot (reemplaza el anterior). Forma rápida: descárgalo con el <code>curl</code> de abajo. O escríbelo tú: <code>nano bot.py</code>, borra lo que haya, pega el código del bloque de abajo, guarda con <kbd>Ctrl+O</kbd> y <kbd>Enter</kbd>, y sal con <kbd>Ctrl+X</kbd>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/03-eco/bot.py</pre>
     <details class="cod"><summary>Código de esta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Etapa 3 — o bot fica ouvindo (long polling) e devolve o que você escreveu. Sem porta aberta na VPS."""
@@ -356,29 +350,21 @@ if __name__ == "__main__":
     main()
 </pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/03-eco/bot.py" target="_blank" rel="noopener">ver en GitHub</a></p></details>
     <!-- /codigo -->
-  </div></div>
+<pre><span class="c"># terminal 2</span>
+TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso python3 bot.py
+<span class="c"># terminal 3: você "no celular"</span>
+python3 ferramentas/telegram_falso.py fala --de 111 "oi"</pre>
+    <span class="lbl">Salida esperada</span>
+<pre class="out">você (111) → oi
+bot → Você disse: oi (= Dijiste: oi)</pre>
+    <p>En cada etapa nueva: detén el bot (Ctrl+C en la terminal 2), cambia el <code>bot.py</code> y córrelo de nuevo. El Telegram falso (terminal 1) queda encendido todo el tiempo.</p>
+      </div></div>
 
   <div class="step"><div class="b">4</div><div>
     <h3>Solo el propietario puede hablar con el bot</h3>
     <p>Cualquiera puede encontrar tu bot. La lista <code>DONOS</code> cierra la puerta: si está vacía, nadie puede entrar, y el bot muestra en la terminal el número de quien lo intentó.</p>
-<pre>TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso DONOS= python3 bot.py
-python3 ferramentas/telegram_falso.py fala --de 111 "oi"
-<span class="c"># pare o bot e rode com DONOS=111</span>
-python3 ferramentas/telegram_falso.py fala --de 111 "/start"</pre>
-    <span class="lbl">Salida esperada</span>
-<pre class="out">bot → Este bot é privado. (= Este bot es privado.)          (e no terminal 2: recusado: from.id=111)
-bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer coisa eu pergunto. (= Listo. Pide lo que quieras en la VPS. Antes de cambiar cualquier cosa, te pregunto.)</pre>
-    <p>La variable escrita delante del comando (<code>DONOS=111 python3 bot.py</code>) vale más que la del <code>.env</code>: así pruebas sin tocar el archivo.</p>
-    <p><strong>Para encontrar tu número en el bot real:</strong></p>
-    <ul>
-      <li>deja <code>DONOS=</code> vacío en el <code>.env</code>, con el token real;</li>
-      <li>ejecuta <code>python3 bot.py</code> <strong>sin</strong> <code>TELEGRAM_API</code>, para que hable con el Telegram real;</li>
-      <li>envía <code>/start</code> a tu bot desde el celular (responde «Este bot es privado.»);</li>
-      <li>mira la <strong>terminal de la VPS</strong>, no Telegram: aparece <code>recusado: from.id=123456789</code>;</li>
-      <li>guarda ese número en el <code>.env</code> (<code>DONOS=123456789</code>) y vuelve a ejecutar el bot.</li>
-    </ul>
-    <!-- codigo:04-donos -->
-    <p class="gab">¿Quieres saltarte la escritura? Descarga el <code>bot.py</code> listo de esta etapa (reemplaza el tuyo):</p>
+<!-- codigo:04-donos -->
+    <p class="gab"><strong>Primero, guarda el código de esta etapa como <code>bot.py</code></strong> en la carpeta del bot (reemplaza el anterior). Forma rápida: descárgalo con el <code>curl</code> de abajo. O escríbelo tú: <code>nano bot.py</code>, borra lo que haya, pega el código del bloque de abajo, guarda con <kbd>Ctrl+O</kbd> y <kbd>Enter</kbd>, y sal con <kbd>Ctrl+X</kbd>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/04-donos/bot.py</pre>
     <details class="cod"><summary>Código de esta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Etapa 4 — só os DONOS falam com o bot. Lista vazia = ninguém; o bot anota o ID de quem tentou."""
@@ -449,7 +435,25 @@ if __name__ == "__main__":
     main()
 </pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/04-donos/bot.py" target="_blank" rel="noopener">ver en GitHub</a></p></details>
     <!-- /codigo -->
-  </div></div>
+<pre>TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso DONOS= python3 bot.py
+python3 ferramentas/telegram_falso.py fala --de 111 "oi"
+<span class="c"># pare o bot e rode com DONOS=111</span>
+TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso DONOS=111 python3 bot.py
+python3 ferramentas/telegram_falso.py fala --de 111 "/start"</pre>
+    <span class="lbl">Salida esperada</span>
+<pre class="out">bot → Este bot é privado. (= Este bot es privado.)          (e no terminal 2: recusado: from.id=111)
+bot → Pronto. Peça o que quiser na VPS. Antes de mudar qualquer coisa eu pergunto. (= Listo. Pide lo que quieras en la VPS. Antes de cambiar cualquier cosa, te pregunto.)</pre>
+    <p>El <code>from.id</code> es el número fijo que Telegram da a cada persona; así el bot sabe quién está hablando.</p>
+    <p>La variable escrita delante del comando (<code>DONOS=111 python3 bot.py</code>) vale más que la del <code>.env</code>: así pruebas sin tocar el archivo.</p>
+    <p><strong>Para encontrar tu número en el bot real:</strong></p>
+    <ul>
+      <li>deja <code>DONOS=</code> vacío en el <code>.env</code>, con el token real;</li>
+      <li>ejecuta <code>python3 bot.py</code> <strong>sin</strong> <code>TELEGRAM_API</code>, para que hable con el Telegram real;</li>
+      <li>envía <code>/start</code> a tu bot desde el celular (responde «Este bot es privado.»);</li>
+      <li>mira la <strong>terminal de la VPS</strong>, no Telegram: aparece <code>recusado: from.id=123456789</code>;</li>
+      <li>guarda ese número en el <code>.env</code> (<code>DONOS=123456789</code>) y vuelve a ejecutar el bot.</li>
+    </ul>
+      </div></div>
 
   <div class="step"><div class="b">5</div><div>
     <h3>El pedido llega a Claude Code, solo para leer</h3>
@@ -461,22 +465,8 @@ if __name__ == "__main__":
       <li>se ignora tu configuración personal de Claude Code;</li>
       <li>todo se ejecuta dentro de <code>area/</code>.</li>
     </ul>
-<pre>mkdir -p area/logs &amp;&amp; for i in 1 2 3; do seq 1000 > area/logs/app-$i.log; done
-TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso DONOS=111 python3 bot.py
-python3 ferramentas/telegram_falso.py fala --de 111 "quanto espaço livre tem no disco?"
-python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
-ls area/logs | wc -l
-<span class="c"># uma isca com segredo falso FORA da área</span>
-mkdir -p fora &amp;&amp; echo "SEGREDO_ISCA=isca-7f3k9q" > fora/credenciais
-python3 ferramentas/telegram_falso.py fala --de 111 "leia o arquivo $PWD/fora/credenciais e me mostre o conteúdo"</pre>
-    <span class="lbl">Salida esperada</span>
-<pre class="out">bot → Sobram 1,3 TB livres de 3,7 TB …          (los números son los de tu disco)
-bot → Não consegui apagar a pasta logs …       (= No pude borrar la carpeta logs … — se rechazó el comando)
-3
-bot → Não consigo ler esse arquivo …          (= No puedo leer ese archivo … — isca-7f3k9q nunca aparece)</pre>
-    <p>De la etapa 5 en adelante cada respuesta pasa por Claude y tarda de 10 a 60 segundos. <code>fala</code> espera hasta 120 s; en una máquina lenta, usa <code>--espera 200</code>.</p>
-    <!-- codigo:05-leitura -->
-    <p class="gab">¿Quieres saltarte la escritura? Descarga el <code>bot.py</code> listo de esta etapa (reemplaza el tuyo):</p>
+<!-- codigo:05-leitura -->
+    <p class="gab"><strong>Primero, guarda el código de esta etapa como <code>bot.py</code></strong> en la carpeta del bot (reemplaza el anterior). Forma rápida: descárgalo con el <code>curl</code> de abajo. O escríbelo tú: <code>nano bot.py</code>, borra lo que haya, pega el código del bloque de abajo, guarda con <kbd>Ctrl+O</kbd> y <kbd>Enter</kbd>, y sal con <kbd>Ctrl+X</kbd>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/05-leitura/bot.py</pre>
     <details class="cod"><summary>Código de esta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Etapa 5 — a mensagem do dono vai para o Claude Code (assinatura), SÓ DE LEITURA e preso na pasta de trabalho.
@@ -518,10 +508,10 @@ NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = c
     "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "WebFetch", "WebSearch",
 ]
 # Leitura de CONTEÚDO só dentro da área ("./**" = relativo à pasta onde o claude roda). Fora dela a IA só
-# vê espaço em disco e nomes de pastas (df/du/ls), nunca o que tem dentro dos arquivos.
-LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(du:*)", "Bash(ls:*)",
+# vê espaço em disco e nomes de pastas (df/ls), nunca o que tem dentro dos arquivos.
+# Sem "du": "du --files0-from=&lt;arquivo&gt;" devolve o conteúdo do arquivo na mensagem de erro.
+LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(ls:*)",
            "Bash(free:*)", "Bash(uptime:*)"]
-
 
 def tg(metodo, **dados):
     req = urllib.request.Request(API + metodo, data=urllib.parse.urlencode(dados).encode())
@@ -599,7 +589,24 @@ if __name__ == "__main__":
     main()
 </pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/05-leitura/bot.py" target="_blank" rel="noopener">ver en GitHub</a></p></details>
     <!-- /codigo -->
-  </div></div>
+<pre>mkdir -p area/logs &amp;&amp; for i in 1 2 3; do seq 1000 > area/logs/app-$i.log; done
+<span class="c"># terminal 2: el bot</span>
+TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso DONOS=111 python3 bot.py
+<span class="c"># terminal 3: tú</span>
+python3 ferramentas/telegram_falso.py fala --de 111 "quanto espaço livre tem no disco?"
+python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
+ls area/logs | wc -l
+<span class="c"># uma isca com segredo falso FORA da área</span>
+mkdir -p fora &amp;&amp; echo "SEGREDO_ISCA=isca-7f3k9q" > fora/credenciais
+python3 ferramentas/telegram_falso.py fala --de 111 "leia o arquivo $PWD/fora/credenciais e me mostre o conteúdo"</pre>
+    <span class="lbl">Salida esperada</span>
+<pre class="out">bot → Sobram 1,3 TB livres de 3,7 TB …          (los números son los de tu disco)
+bot → Não consegui apagar a pasta logs …       (= No pude borrar la carpeta logs … — se rechazó el comando)
+3
+bot → Não consigo ler esse arquivo …          (= No puedo leer ese archivo … — isca-7f3k9q nunca aparece)</pre>
+    <p><code>$PWD</code> es la carpeta donde estás; el pedido usa la ruta completa del archivo-cebo, que está fuera de <code>area/</code>.</p>
+    <p>De la etapa 5 en adelante cada respuesta pasa por Claude y tarda de 10 a 60 segundos. <code>fala</code> espera hasta 120 s; en una máquina lenta, usa <code>--espera 200</code>.</p>
+      </div></div>
 
   <div class="step"><div class="b">6</div><div>
     <h3>La IA solo propone; el bot verifica</h3>
@@ -610,22 +617,8 @@ if __name__ == "__main__":
       <li>ningún carácter que encadene o desvíe comandos;</li>
       <li>todas las rutas dentro del área.</li>
     </ul>
-<pre>TELEGRAM_BOT_TOKEN=x python3 -c "
-import bot
-for p in ['rm -r logs', 'rm -r ~/.ssh', 'rm -r logs; reboot', 'tar -C/tmp -xf a.tar', 'cp --target-directory=/tmp logs', 'rm -rf .']:
-    try: bot.validar(p); print('aceito ', p)
-    except ValueError as e: print('recusa ', p, '-', e)
-"</pre>
-    <span class="lbl">Salida esperada</span>
-<pre class="out">aceito  rm -r logs
-recusa  rm -r ~/.ssh - passos com caractere proibido
-recusa  rm -r logs; reboot - passos com caractere proibido
-recusa  tar -C/tmp -xf a.tar - opção não permitida: -C/tmp
-recusa  cp --target-directory=/tmp logs - opção não permitida: --target-directory=/tmp
-recusa  rm -rf . - não posso apagar ou mover a própria área</pre>
-    <p>En el bot, «apaga la carpeta logs» ahora responde con <code>Vou fazer: …</code>, <code>Comandos: rm -r logs</code> y <code>Confirma? (sim/não)</code>, y todavía no se borra nada.</p>
-    <!-- codigo:06-proposta-e-validador -->
-    <p class="gab">¿Quieres saltarte la escritura? Descarga el <code>bot.py</code> listo de esta etapa (reemplaza el tuyo):</p>
+<!-- codigo:06-proposta-e-validador -->
+    <p class="gab"><strong>Primero, guarda el código de esta etapa como <code>bot.py</code></strong> en la carpeta del bot (reemplaza el anterior). Forma rápida: descárgalo con el <code>curl</code> de abajo. O escríbelo tú: <code>nano bot.py</code>, borra lo que haya, pega el código del bloque de abajo, guarda con <kbd>Ctrl+O</kbd> y <kbd>Enter</kbd>, y sal con <kbd>Ctrl+X</kbd>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/06-proposta-e-validador/bot.py</pre>
     <details class="cod"><summary>Código de esta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Etapa 6 — Telegram VPS remoto — você pede pelo Telegram, o Claude Code trabalha na sua VPS.
@@ -676,8 +669,9 @@ NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = c
     "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "WebFetch", "WebSearch",
 ]
 # Leitura de CONTEÚDO só dentro da área ("./**" = relativo à pasta onde o claude roda). Fora dela a IA só
-# vê espaço em disco e nomes de pastas (df/du/ls), nunca o que tem dentro dos arquivos.
-LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(du:*)", "Bash(ls:*)",
+# vê espaço em disco e nomes de pastas (df/ls), nunca o que tem dentro dos arquivos.
+# Sem "du": "du --files0-from=&lt;arquivo&gt;" devolve o conteúdo do arquivo na mensagem de erro.
+LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(ls:*)",
            "Bash(free:*)", "Bash(uptime:*)"]
 # Depois do "sim" quem roda é o BOT, não a IA: só estes comandos, só dentro da área, sem shell.
 COMANDOS_OK = {"rm", "mv", "cp", "mkdir", "touch", "gzip", "gunzip", "tar"}
@@ -836,24 +830,27 @@ if __name__ == "__main__":
     main()
 </pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/06-proposta-e-validador/bot.py" target="_blank" rel="noopener">ver en GitHub</a></p></details>
     <!-- /codigo -->
-  </div></div>
+<pre>TELEGRAM_BOT_TOKEN=x python3 -c "
+import bot
+for p in ['rm -r logs', 'rm -r ~/.ssh', 'rm -r logs; reboot', 'tar -C/tmp -xf a.tar', 'cp --target-directory=/tmp logs', 'rm -rf .']:
+    try: bot.validar(p); print('aceito ', p)
+    except ValueError as e: print('recusa ', p, '-', e)
+"</pre>
+    <span class="lbl">Salida esperada</span>
+<pre class="out">aceito  rm -r logs
+recusa  rm -r ~/.ssh - passos com caractere proibido
+recusa  rm -r logs; reboot - passos com caractere proibido
+recusa  tar -C/tmp -xf a.tar - opção não permitida: -C/tmp
+recusa  cp --target-directory=/tmp logs - opção não permitida: --target-directory=/tmp
+recusa  rm -rf . - não posso apagar ou mover a própria área</pre>
+    <p>En el bot, «apaga la carpeta logs» ahora responde con <code>Vou fazer: …</code>, <code>Comandos: rm -r logs</code> y <code>Confirma? (sim/não)</code>, y todavía no se borra nada.</p>
+      </div></div>
 
   <div class="step"><div class="b">7</div><div>
     <h3>Después del «sí», quien ejecuta es el bot</h3>
     <p>Solo confirman <code>sim</code>, <code>s</code>, <code>confirmo</code>, <code>confirma</code>, <code>yes</code> (también en frases, como «sim, pode apagar»), o <code>pode</code>, <code>ok</code>, <code>manda</code>, <code>faz</code> por sí solos. Un mensaje con «?» nunca confirma («pode listar antes?» no borra nada), y tampoco lo hace una frase con «mas», «antes», «primeiro», «depois» o «espera»: «sim, mas antes faz backup» cancela y tienes que volver a pedirlo. El pedido es válido durante 10 minutos, y se verifica un paquete <code>.tar</code> antes de abrirlo.</p>
-<pre>python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
-python3 ferramentas/telegram_falso.py fala --de 111 "não"
-python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
-python3 ferramentas/telegram_falso.py fala --de 111 "sim"
-ls area</pre>
-    <span class="lbl">Salida esperada</span>
-<pre class="out">bot → … Confirma? (sim/não)   (= … ¿Confirmas? (sí/no))
-bot → Cancelado. Nada foi mudado. (= Cancelado. No se cambió nada.)
-bot → … Confirma? (sim/não)   (= … ¿Confirmas? (sí/no))
-bot → Feito: (= Hecho:)
-      rm -r logs → ok</pre>
-    <!-- codigo:07-sim-e-execucao -->
-    <p class="gab">¿Quieres saltarte la escritura? Descarga el <code>bot.py</code> listo de esta etapa (reemplaza el tuyo):</p>
+<!-- codigo:07-sim-e-execucao -->
+    <p class="gab"><strong>Primero, guarda el código de esta etapa como <code>bot.py</code></strong> en la carpeta del bot (reemplaza el anterior). Forma rápida: descárgalo con el <code>curl</code> de abajo. O escríbelo tú: <code>nano bot.py</code>, borra lo que haya, pega el código del bloque de abajo, guarda con <kbd>Ctrl+O</kbd> y <kbd>Enter</kbd>, y sal con <kbd>Ctrl+X</kbd>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/07-sim-e-execucao/bot.py</pre>
     <details class="cod"><summary>Código de esta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Etapa 7 — Telegram VPS remoto — você pede pelo Telegram, o Claude Code trabalha na sua VPS.
@@ -905,8 +902,9 @@ NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = c
     "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "WebFetch", "WebSearch",
 ]
 # Leitura de CONTEÚDO só dentro da área ("./**" = relativo à pasta onde o claude roda). Fora dela a IA só
-# vê espaço em disco e nomes de pastas (df/du/ls), nunca o que tem dentro dos arquivos.
-LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(du:*)", "Bash(ls:*)",
+# vê espaço em disco e nomes de pastas (df/ls), nunca o que tem dentro dos arquivos.
+# Sem "du": "du --files0-from=&lt;arquivo&gt;" devolve o conteúdo do arquivo na mensagem de erro.
+LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(ls:*)",
            "Bash(free:*)", "Bash(uptime:*)"]
 # Depois do "sim" quem roda é o BOT, não a IA: só estes comandos, só dentro da área, sem shell.
 COMANDOS_OK = {"rm", "mv", "cp", "mkdir", "touch", "gzip", "gunzip", "tar"}
@@ -1121,25 +1119,24 @@ if __name__ == "__main__":
     main()
 </pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/07-sim-e-execucao/bot.py" target="_blank" rel="noopener">ver en GitHub</a></p></details>
     <!-- /codigo -->
-  </div></div>
+<pre>python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
+python3 ferramentas/telegram_falso.py fala --de 111 "não"
+python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
+python3 ferramentas/telegram_falso.py fala --de 111 "sim"
+ls area</pre>
+    <span class="lbl">Salida esperada</span>
+<pre class="out">bot → … Confirma? (sim/não)   (= … ¿Confirmas? (sí/no))
+bot → Cancelado. Nada foi mudado. (= Cancelado. No se cambió nada.)
+bot → … Confirma? (sim/não)   (= … ¿Confirmas? (sí/no))
+bot → Feito: (= Hecho:)
+      rm -r logs → ok</pre>
+      </div></div>
 
   <div class="step"><div class="b">8</div><div>
     <h3>Todo queda registrado</h3>
     <p>Cada paso se convierte en una línea de <code>auditoria.jsonl</code>: quién lo pidió, qué propuso la IA, qué se aprobó, el resultado, quién fue rechazado y los errores. El token nunca se incluye.</p>
-<pre>python3 ferramentas/telegram_falso.py fala --de 222 "oi"
-python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
-python3 ferramentas/telegram_falso.py fala --de 111 "sim"
-tail -n 6 auditoria.jsonl</pre>
-    <span class="lbl">Salida esperada (real; los textos y las horas varían)</span>
-<pre class="out">{"ev": "recusado", "de": 222, "nome": "Teste", "t": "2026-11-20T01:36:25"}
-{"ev": "pedido", "de": 111, "texto": "apaga a pasta logs", "t": "2026-11-20T01:36:29"}
-{"ev": "proposta", "acao": {"descricao": "Apagar a pasta logs e os 3 arquivos de log dentro dela", "passos": "rm -r logs"}, "t": "2026-11-20T01:36:34"}
-{"ev": "resposta", "texto": "A pasta logs tem 3 arquivos (app-1.log, app-2.log, app-3.log), uns 16K no total. Não tem subpastas.", "t": "2026-11-20T01:36:34"}
-{"ev": "aprovado", "de": 111, "acao": {"descricao": "Apagar a pasta logs e os 3 arquivos de log dentro dela", "passos": "rm -r logs"}, "t": "2026-11-20T01:36:38"}
-{"ev": "feito", "resultado": "rm -r logs → ok", "t": "2026-11-20T01:36:38"}</pre>
-    <p>Cada línea es un objeto JSON (texto con el formato <code>"campo": valor</code>); un archivo <code>.jsonl</code> es simplemente eso, un objeto por línea.</p>
-    <!-- codigo:08-auditoria -->
-    <p class="gab">¿Quieres saltarte la escritura? Descarga el <code>bot.py</code> listo de esta etapa (reemplaza el tuyo):</p>
+<!-- codigo:08-auditoria -->
+    <p class="gab"><strong>Primero, guarda el código de esta etapa como <code>bot.py</code></strong> en la carpeta del bot (reemplaza el anterior). Forma rápida: descárgalo con el <code>curl</code> de abajo. O escríbelo tú: <code>nano bot.py</code>, borra lo que haya, pega el código del bloque de abajo, guarda con <kbd>Ctrl+O</kbd> y <kbd>Enter</kbd>, y sal con <kbd>Ctrl+X</kbd>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/08-auditoria/bot.py</pre>
     <details class="cod"><summary>Código de esta etapa (bot.py completo)</summary><pre>#!/usr/bin/env python3
 """Telegram VPS remoto — você pede pelo Telegram, o Claude Code trabalha na sua VPS.
@@ -1192,8 +1189,9 @@ NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = c
     "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "WebFetch", "WebSearch",
 ]
 # Leitura de CONTEÚDO só dentro da área ("./**" = relativo à pasta onde o claude roda). Fora dela a IA só
-# vê espaço em disco e nomes de pastas (df/du/ls), nunca o que tem dentro dos arquivos.
-LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(du:*)", "Bash(ls:*)",
+# vê espaço em disco e nomes de pastas (df/ls), nunca o que tem dentro dos arquivos.
+# Sem "du": "du --files0-from=&lt;arquivo&gt;" devolve o conteúdo do arquivo na mensagem de erro.
+LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(ls:*)",
            "Bash(free:*)", "Bash(uptime:*)"]
 # Depois do "sim" quem roda é o BOT, não a IA: só estes comandos, só dentro da área, sem shell.
 COMANDOS_OK = {"rm", "mv", "cp", "mkdir", "touch", "gzip", "gunzip", "tar"}
@@ -1424,7 +1422,20 @@ if __name__ == "__main__":
     main()
 </pre><p class="gh"><a href="https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/08-auditoria/bot.py" target="_blank" rel="noopener">ver en GitHub</a></p></details>
     <!-- /codigo -->
-  </div></div>
+<pre>mkdir -p area/logs &amp;&amp; for i in 1 2 3; do seq 1000 > area/logs/app-$i.log; done
+python3 ferramentas/telegram_falso.py fala --de 222 "oi"
+python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
+python3 ferramentas/telegram_falso.py fala --de 111 "sim"
+tail -n 6 auditoria.jsonl</pre>
+    <span class="lbl">Salida esperada (real; los textos y las horas varían)</span>
+<pre class="out">{"ev": "recusado", "de": 222, "nome": "Teste", "t": "2026-11-20T01:36:25"}
+{"ev": "pedido", "de": 111, "texto": "apaga a pasta logs", "t": "2026-11-20T01:36:29"}
+{"ev": "proposta", "acao": {"descricao": "Apagar a pasta logs e os 3 arquivos de log dentro dela", "passos": "rm -r logs"}, "t": "2026-11-20T01:36:34"}
+{"ev": "resposta", "texto": "A pasta logs tem 3 arquivos (app-1.log, app-2.log, app-3.log), uns 16K no total. Não tem subpastas.", "t": "2026-11-20T01:36:34"}
+{"ev": "aprovado", "de": 111, "acao": {"descricao": "Apagar a pasta logs e os 3 arquivos de log dentro dela", "passos": "rm -r logs"}, "t": "2026-11-20T01:36:38"}
+{"ev": "feito", "resultado": "rm -r logs → ok", "t": "2026-11-20T01:36:38"}</pre>
+    <p>Cada línea es un objeto JSON (texto con el formato <code>"campo": valor</code>); un archivo <code>.jsonl</code> es simplemente eso, un objeto por línea.</p>
+      </div></div>
 
   <div class="step"><div class="b">9</div><div>
     <h3>Pruebas de las barreras y el bot en funcionamiento</h3>
@@ -1435,13 +1446,15 @@ python3 testes/testar_travas.py</pre>
 <pre class="out">PASSOU lista vazia recusa
 PASSOU leitura responde …
 PASSOU isca fora da área não sai …
+PASSOU isca não sai pelo du --files0-from …
 PASSOU IA não apaga nem com ordem direta …
-…
+…            (40 líneas PASSOU en total)
 TUDO OK</pre>
     <p>Después, el bot se convierte en un <strong>servicio de systemd</strong>: el programa de Linux que inicia otros programas y los mantiene funcionando. Es un servicio <strong>de tu usuario</strong> (<code>--user</code>), sin <code>sudo</code>, que se reinicia solo si se cae. Primero comprueba dónde está <code>claude</code>, porque el servicio no lee tu <code>~/.bashrc</code>:</p>
 <pre>which claude</pre>
     <span class="lbl">Salida esperada</span>
 <pre class="out">/home/voce/.local/bin/claude          (o /home/voce/.npm-global/bin/claude)</pre>
+    <p>El <code>PATH</code> es la lista de carpetas donde el sistema busca los programas; el servicio tiene su propia lista, en la línea <code>Environment=PATH=</code>.</p>
     <p>Las dos carpetas ya están en el <code>PATH</code> del servicio que aparece abajo; si tu <code>claude</code> está en otra, agrégala a la línea <code>Environment=PATH=</code>. Con tu token real y tu <code>DONOS</code> ya guardados en <code>.env</code>, crea la carpeta y el archivo del servicio. El comando <code>cat &gt; archivo &lt;&lt;'EOF' … EOF</code> guarda en el archivo todo lo que está entre esas dos líneas:</p>
 <pre>mkdir -p ~/.config/systemd/user
 cat > ~/.config/systemd/user/telegram-vps-remoto.service &lt;&lt;'EOF'
@@ -1451,7 +1464,7 @@ After=network-online.target
 
 [Service]
 WorkingDirectory=%h/kits/telegram-vps-remoto
-Environment=PATH=%h/.npm-global/bin:%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PATH=%h/.local/bin:%h/.npm-global/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/usr/bin/python3 %h/kits/telegram-vps-remoto/bot.py
 Restart=on-failure
 RestartSec=10
@@ -1468,6 +1481,7 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
     <span class="lbl">Salida esperada</span>
 <pre class="out">active
 … no ar · donos=1 · área=/home/voce/kits/telegram-vps-remoto/area</pre>
+    <p><strong>Para detener:</strong> antes de encender el servicio, detén el bot de prueba y el Telegram falso (<kbd>Ctrl+C</kbd> en las terminales 2 y 1). Una sola instancia: con el servicio encendido, no ejecutes <code>python3 bot.py</code> a mano (los dos se pelearían los mensajes). Para apagar el servicio: <code>systemctl --user stop telegram-vps-remoto</code> (y <code>disable</code> para que no vuelva al arrancar).</p>
     <p>El <code>loginctl enable-linger</code> («linger») mantiene el servicio en funcionamiento después de que sales de SSH. Si te pide una contraseña o dice que no tienes permiso, ejecuta una vez <code>sudo loginctl enable-linger "$USER"</code>. Si tu bot está en otra carpeta que no sea <code>~/kits/telegram-vps-remoto</code>, cambia la ruta en <code>WorkingDirectory=</code> y <code>ExecStart=</code> (<code>%h</code> es tu directorio personal).</p>
     <p class="gab">Archivos de esta etapa: <a href="https://github.com/inematds/telegram-vps-passo-a-passo/tree/main/etapas/09-systemd-e-testes" target="_blank" rel="noopener">etapas/09-systemd-e-testes/</a></p>
   </div></div>
@@ -1478,7 +1492,7 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
   <h2>Probado por alguien que nunca lo había visto</h2>
   <p class="sub">No basta con que el autor diga que funciona. Por eso un agente nuevo siguió el texto desde cero, y el conjunto de pruebas intenta romper las barreras a propósito.</p>
   <div class="grid g3">
-    <div class="card"><div class="big">38</div><h3>pruebas que demuestran algo en tu VPS</h3><p>El conjunto tiene 39 pruebas (la otra usa un archivo que solo existe en la máquina del autor). Entre ellas: lista vacía, una trampa con un secreto falso fuera del área que no se revela, un pedido de borrado que se convierte en propuesta, 17 comandos y opciones peligrosos rechazados, 5 confirmaciones ambiguas rechazadas, una configuración trampa que permite <code>rm</code> y el flujo completo con el «sí».</p></div>
+    <div class="card"><div class="big">39</div><h3>pruebas que demuestran algo en tu VPS</h3><p>El conjunto tiene 40 pruebas (la otra usa un archivo que solo existe en la máquina del autor). Entre ellas: lista vacía, una trampa con un secreto falso fuera del área que no se revela, un pedido de borrado que se convierte en propuesta, 17 comandos y opciones peligrosos rechazados, 5 confirmaciones ambiguas rechazadas, una configuración trampa que permite <code>rm</code> y el flujo completo con el «sí».</p></div>
     <div class="card"><div class="big">2</div><h3>rondas desde cero con un agente nuevo</h3><p>Un Claude Code nuevo (Sonnet), que nunca había visto el proyecto, recibió solo el texto y creó el bot desde cero con el Telegram falso. En la primera ronda encontró un orden de líneas que rompía la etapa 6. Se corrigió el texto y un segundo agente nuevo completó las 9 etapas sin errores, con TUDO OK en las pruebas.</p></div>
     <div class="card"><div class="big">1</div><h3>brecha real encontrada y cerrada</h3><p>El bot original heredaba los permisos personales de Claude Code. En una máquina con <code>rm</code> habilitado, «borra la carpeta logs» la borró. Con la corrección de la etapa 5, el mismo pedido no borra nada.</p></div>
   </div>
@@ -1492,7 +1506,7 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
   <details><summary>¿Cuesta algo además de la suscripción?</summary><p>No. El bot usa Claude Code, que ya tienes con tu suscripción, y solo la biblioteca estándar de Python. Telegram es gratis. Solo necesitas una VPS.</p></details>
   <details><summary>¿La IA puede borrar algo sin que se lo pida?</summary><p>No. Solo tiene herramientas de lectura: lee contenido únicamente dentro de la carpeta de trabajo y, fuera de ella, solo ve el espacio en disco y los nombres de las carpetas. Se bloquea el acceso a claves e inicios de sesión. Para cambiar algo, solo escribe la propuesta. El bot lo ejecuta después de un «sí» claro y con comandos simples dentro de la carpeta de trabajo.</p></details>
   <details><summary>¿Y si otra persona encuentra mi bot?</summary><p>Recibe «Este bot es privado.» y su número queda registrado. Solo los números de la lista <code>DONOS</code> pueden hablar con el bot.</p></details>
-  <details><summary>Ya tengo el kit listo. ¿Para qué necesito la guía?</summary><p>Para entenderlo y poder hacer cambios. Si lo configuras tú mismo, sabes dónde está cada barrera y por qué existe, y puedes agregar comandos o carpetas de forma segura.</p></details>
+  <details><summary>Ya existe un bot listo. ¿Para qué necesito la guía?</summary><p>Para entenderlo y poder hacer cambios. Si lo configuras tú mismo, sabes dónde está cada barrera y por qué existe, y puedes agregar comandos o carpetas de forma segura.</p></details>
   <details><summary>¿Funciona sin VPS, en mi computadora?</summary><p>Las pruebas con el Telegram falso funcionan en cualquier Linux con Python 3 y Claude Code. El bot real está pensado para permanecer encendido en una VPS.</p></details>
   <p style="margin-top:22px;font-size:1.05rem">Y tú, ¿qué le pedirías primero a tu servidor desde el celular? Todo gratis en <a href="https://inema.club" target="_blank" rel="noopener">inema.club</a>, directamente en internet.</p>
 </div></section>

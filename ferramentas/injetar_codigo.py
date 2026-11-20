@@ -10,11 +10,17 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW = "https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/{}/bot.py"
 BLOB = "https://github.com/inematds/telegram-vps-passo-a-passo/blob/main/etapas/{}/bot.py"
 TXT = {
-    "index.html": ("Quer pular a digitação? Baixe o <code>bot.py</code> pronto desta etapa (substitui o seu):",
+    "index.html": ("<strong>Primeiro, salve o código desta etapa como <code>bot.py</code></strong> na pasta do bot (ele substitui o anterior). "
+                   "Jeito rápido: baixe com o <code>curl</code> abaixo. Ou escreva você mesmo: <code>nano bot.py</code>, apague o que houver, "
+                   "cole o código do bloco abaixo, salve com <kbd>Ctrl+O</kbd> e <kbd>Enter</kbd>, e saia com <kbd>Ctrl+X</kbd>.",
                    "Código desta etapa (bot.py completo)", "ver no GitHub"),
-    "en/index.html": ("Want to skip the typing? Download this step's finished <code>bot.py</code> (it replaces yours):",
+    "en/index.html": ("<strong>First, save this step's code as <code>bot.py</code></strong> in the bot folder (it replaces the previous one). "
+                      "Quick way: download it with the <code>curl</code> below. Or write it yourself: <code>nano bot.py</code>, delete what's there, "
+                      "paste the code from the block below, save with <kbd>Ctrl+O</kbd> and <kbd>Enter</kbd>, and exit with <kbd>Ctrl+X</kbd>.",
                       "Code for this step (full bot.py)", "view on GitHub"),
-    "es/index.html": ("¿Quieres saltarte la escritura? Descarga el <code>bot.py</code> listo de esta etapa (reemplaza el tuyo):",
+    "es/index.html": ("<strong>Primero, guarda el código de esta etapa como <code>bot.py</code></strong> en la carpeta del bot (reemplaza el anterior). "
+                      "Forma rápida: descárgalo con el <code>curl</code> de abajo. O escríbelo tú: <code>nano bot.py</code>, borra lo que haya, "
+                      "pega el código del bloque de abajo, guarda con <kbd>Ctrl+O</kbd> y <kbd>Enter</kbd>, y sal con <kbd>Ctrl+X</kbd>.",
                       "Código de esta etapa (bot.py completo)", "ver en GitHub"),
 }
 VELHO = re.compile(r'<p class="gab">[^<]*<a href="' + re.escape(BLOB.format("X")).replace("X", r"(\d\d-[^/\"]+)")

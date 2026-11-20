@@ -55,7 +55,7 @@ Quién lo hace: 🧠 tú (en la VPS) · ⚙️ script/servicio · 🤖 Claude Co
 |---|---|
 | `PASSO-A-PASSO.es.md` | el texto de las 9 etapas, con el código que se agrega en cada una |
 | `etapas/NN-*/bot.py` | el `bot.py` completo al final de cada etapa |
-| `etapas/09-systemd-e-testes/testes/testar_travas.py` | pruebas de las barreras (6 llamadas breves de Claude Code) |
+| `etapas/09-systemd-e-testes/testes/testar_travas.py` | pruebas de las barreras (7 llamadas breves de Claude Code) |
 | `etapas/09-systemd-e-testes/systemd/telegram-vps-remoto.service` | unidad systemd de usuario |
 | `ferramentas/telegram_falso.py` | imita `getMe`, `getUpdates`, `sendMessage`, `sendChatAction`; `fala` envía un mensaje como alguien |
 | `validacao/` | informes del agente nuevo que siguió el texto desde cero |
@@ -63,13 +63,13 @@ Quién lo hace: 🧠 tú (en la VPS) · ⚙️ script/servicio · 🤖 Claude Co
 **Las barreras (en el código):**
 
 1. Si `DONOS` está vacío, el bot rechaza a todos y registra el `from.id` de quien lo intentó.
-2. La IA se ejecuta con `--allowedTools Read(./**) Glob(./**) Grep(./**) Bash(df/du/ls/free/uptime)`: el contenido de los archivos solo se lee dentro de `area/`; fuera de esa carpeta solo se consultan el espacio en disco y los nombres de las carpetas. `--disallowedTools` bloquea claves e inicios de sesión (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), `~/.bash_history`, todos los `.env`, la escritura, `sudo`, `curl`, `cat`…; `--permission-mode dontAsk`.
+2. La IA se ejecuta con `--allowedTools Read(./**) Glob(./**) Grep(./**) Bash(df/ls/free/uptime)`: el contenido de los archivos solo se lee dentro de `area/`; fuera de esa carpeta solo se consultan el espacio en disco y los nombres de las carpetas. `--disallowedTools` bloquea claves e inicios de sesión (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), `~/.bash_history`, todos los `.env`, la escritura, `sudo`, `curl`, `cat`…; `--permission-mode dontAsk`.
 3. `--setting-sources ""` y `--strict-mcp-config`: sin esto, las reglas «allow» de tu `~/.claude/settings.json` se suman y rompen la barrera (comprobado: se borró la carpeta `logs` al pedir «borra la carpeta logs»).
 4. La acción llega en un JSON fijo (`--json-schema`); `validar()` solo acepta `rm mv cp mkdir touch gzip gunzip tar`, solo opciones de la lista corta, sin `| ; $ \` < > ~ ..` y con todas las rutas (mediante `realpath`) dentro de `area/`.
 5. Solo confirman `sim`/`s`/`confirmo`/`confirma`/`yes` (o `pode`/`ok`/`manda`/`faz` por sí solas); si hay un `?`, nunca, ni tampoco con `mas`/`antes`/`primeiro`/`depois`/`espera` («sim, mas antes faz backup» cancela). Tiene una validez de 10 min. Quien ejecuta es el bot, sin shell. `tar -x` se muestra antes (rechaza `/`, `..`, enlaces).
 6. `auditoria.jsonl` guarda cada evento, sin el token. Ninguna clave `ANTHROPIC_*`/`OPENAI_*`/`OPENROUTER_*`/`TELEGRAM_*` se envía al proceso de Claude.
 
-**Pruebas:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` (6 llamadas breves de Claude Code) usa un área y una auditoría temporales, coloca un `settings.json` trampa que permite `rm` y un señuelo con un secreto falso fuera del área; son 39 pruebas y la salida es `TUDO OK`. Una de ellas (`chaves não saem`) usa `~/.config/inema/.env`, que solo existe en la máquina del autor: en tu VPS pasa sin demostrar nada, y quien sí lo demuestra es el señuelo fuera del área.
+**Pruebas:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` (7 llamadas breves de Claude Code) usa un área y una auditoría temporales, coloca un `settings.json` trampa que permite `rm` y un señuelo con un secreto falso fuera del área; son 40 pruebas y la salida es `TUDO OK`. Una de ellas (`chaves não saem`) usa `~/.config/inema/.env`, que solo existe en la máquina del autor: en tu VPS pasa sin demostrar nada, y quien sí lo demuestra es el señuelo fuera del área.
 
 **Prueba:** la validación está en [`validacao/`](validacao/): un agente nuevo (Claude Code, modelo Sonnet) recibió solo el texto, montó el bot desde cero con el Telegram falso y ejecutó las pruebas.
 

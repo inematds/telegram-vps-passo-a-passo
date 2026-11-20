@@ -65,6 +65,8 @@ Saída esperada: começa com `usage: telegram_falso.py`.
 
 Guarde no `.env` (só você lê):
 
+O `cat > .env <<'EOF' … EOF` (heredoc) grava no arquivo tudo o que está entre as duas linhas:
+
 ```bash
 cat > .env <<'EOF'
 TELEGRAM_BOT_TOKEN=cole_o_token_aqui
@@ -278,7 +280,7 @@ Se aparecer mais de um número, só um é o seu: o que surgiu na hora em que voc
 
 Agora o pedido do dono vai para o `claude -p`. A trava está **no comando**:
 
-- `--allowedTools` só libera leitura: `Read`, `Glob` e `Grep` **só dentro de `area/`** (`./**`), e `df`, `du`, `ls`, `free`, `uptime`. Fora da área a IA só vê espaço em disco e nomes de pastas, **nunca o conteúdo** dos arquivos;
+- `--allowedTools` só libera leitura: `Read`, `Glob` e `Grep` **só dentro de `area/`** (`./**`), e `df`, `ls`, `free`, `uptime` (sem `du`: `du --files0-from=<arquivo>` mostraria o conteúdo do arquivo na mensagem de erro). Fora da área a IA só vê espaço em disco e nomes de pastas, **nunca o conteúdo** dos arquivos;
 - `--disallowedTools` nega, mesmo assim, chaves e logins (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), o histórico do terminal, todo `.env`, e qualquer escrita (`Edit`, `Write`, `sudo`, `curl`, `cat`…);
 - `--permission-mode dontAsk` recusa sozinho tudo o que não foi liberado;
 - `--setting-sources ""` e `--strict-mcp-config` fazem o Claude **ignorar o seu `settings.json`, CLAUDE.md, hooks e MCP**. Sem isso, uma regra "allow" sua (ex.: `Bash(rm:*)`) se soma às liberadas e **fura a trava** — testamos: sem essa linha, "apague a pasta logs" apagou;
@@ -313,8 +315,9 @@ NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = c
     "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "WebFetch", "WebSearch",
 ]
 # Leitura de CONTEÚDO só dentro da área ("./**" = relativo à pasta onde o claude roda). Fora dela a IA só
-# vê espaço em disco e nomes de pastas (df/du/ls), nunca o que tem dentro dos arquivos.
-LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(du:*)", "Bash(ls:*)",
+# vê espaço em disco e nomes de pastas (df/ls), nunca o que tem dentro dos arquivos.
+# Sem "du": "du --files0-from=<arquivo>" devolve o conteúdo do arquivo na mensagem de erro.
+LEITURA = ["Read(./**)", "Glob(./**)", "Grep(./**)", "Bash(df:*)", "Bash(ls:*)",
            "Bash(free:*)", "Bash(uptime:*)"]
 ```
 
@@ -754,7 +757,7 @@ Cada linha é um objeto JSON (texto com `"campo": valor`); um arquivo `.jsonl` �
 
 ## Etapa 9 — Testes das travas e o bot ligado de vez (systemd)
 
-Baixe o teste das travas e rode (gasta 6 chamadas curtas do Claude Code; leva de meio minuto a uns 4 minutos):
+Baixe o teste das travas e rode (gasta 7 chamadas curtas do Claude Code; leva de meio minuto a uns 4 minutos):
 
 ```bash
 curl -fsSLo testes/testar_travas.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/09-systemd-e-testes/testes/testar_travas.py
@@ -786,7 +789,7 @@ After=network-online.target
 
 [Service]
 WorkingDirectory=%h/kits/telegram-vps-remoto
-Environment=PATH=%h/.npm-global/bin:%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PATH=%h/.local/bin:%h/.npm-global/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/usr/bin/python3 %h/kits/telegram-vps-remoto/bot.py
 Restart=on-failure
 RestartSec=10
