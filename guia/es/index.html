@@ -1051,8 +1051,10 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
+    if any(w in ("no", "not") for w in (palavras[0], palavras[1:2] and palavras[1], palavras[-1])):
+        return False   # "no" só cancela no começo: em português "no" também é "em + o" ("sim, apaga o que está no log")
     if any(w in palavras for w in ("mas", "pero", "but", "antes", "primeiro", "depois", "espera",
-                                   "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
+                                   "não", "nao", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
 
@@ -1354,8 +1356,10 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
+    if any(w in ("no", "not") for w in (palavras[0], palavras[1:2] and palavras[1], palavras[-1])):
+        return False   # "no" só cancela no começo: em português "no" também é "em + o" ("sim, apaga o que está no log")
     if any(w in palavras for w in ("mas", "pero", "but", "antes", "primeiro", "depois", "espera",
-                                   "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
+                                   "não", "nao", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
 
@@ -1503,7 +1507,7 @@ PASSOU IA não apaga nem com ordem direta …
 PASSOU aceita rm dentro da área
 …
 PASSOU apagou depois do sim …
-…            (50 líneas PASSOU en total)
+…            (52 líneas PASSOU en total)
 TUDO OK</pre>
     <p><code>PASSOU</code> = pasó, <code>TUDO OK</code> = todo bien (la prueba imprime en portugués).</p>
     <p>Borra también el cebo de la etapa 5, que ya no necesita quedarse en la VPS: <code>rm -r fora</code>.</p>
@@ -1557,8 +1561,8 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
   <h2>Probado por alguien que nunca lo había visto</h2>
   <p class="sub">No basta con que el autor diga que funciona. Por eso un agente nuevo siguió el texto desde cero, y el conjunto de pruebas intenta romper las barreras a propósito.</p>
   <div class="grid g3">
-    <div class="card"><div class="big">50</div><h3>pruebas de las protecciones, todas válidas en tu VPS</h3><p>Entre ellas: lista vacía, un <code>.env</code> falso dentro del área y un cebo con un secreto falso fuera de ella que no se filtran, borrar que se vuelve propuesta, 18 comandos y opciones peligrosos rechazados (comodín incluido), 18 confirmaciones verificadas (12 rechazadas), una configuración trampa que habilita <code>rm</code> y el flujo completo por el «sí».</p></div>
-    <div class="card"><div class="big">4</div><h3>rondas de un agente nuevo, desde cero</h3><p>Un Claude Code nuevo (Sonnet), que nunca había visto el proyecto, montó el bot desde cero con el Telegram falso. En la 1.ª ronda encontró un orden de líneas que rompía la etapa 6; el texto se corrigió. Las rondas 3 y 4 usaron solo esta página: las 9 etapas pasaron con TUDO OK (en ese momento la suite tenía 39 y 40 pruebas; hoy tiene 50).</p></div>
+    <div class="card"><div class="big">52</div><h3>pruebas de las protecciones, todas válidas en tu VPS</h3><p>Entre ellas: lista vacía, un <code>.env</code> falso dentro del área y un cebo con un secreto falso fuera de ella que no se filtran, borrar que se vuelve propuesta, 18 comandos y opciones peligrosos rechazados (comodín incluido), 20 confirmaciones verificadas (13 rechazadas), una configuración trampa que habilita <code>rm</code> y el flujo completo por el «sí».</p></div>
+    <div class="card"><div class="big">4</div><h3>rondas de un agente nuevo, desde cero</h3><p>Un Claude Code nuevo (Sonnet), que nunca había visto el proyecto, montó el bot desde cero con el Telegram falso. En la 1.ª ronda encontró un orden de líneas que rompía la etapa 6; el texto se corrigió. Las rondas 3 y 4 usaron solo esta página: las 9 etapas pasaron con TUDO OK (en ese momento la suite tenía 39 y 40 pruebas; hoy tiene 52).</p></div>
     <div class="card"><div class="big">1</div><h3>brecha real encontrada y cerrada</h3><p>El bot original heredaba los permisos personales de Claude Code. En una máquina con <code>rm</code> habilitado, «borra la carpeta logs» la borró. Con la corrección de la etapa 5, el mismo pedido no borra nada.</p></div>
   </div>
 </div></section>

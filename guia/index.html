@@ -1051,8 +1051,10 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
+    if any(w in ("no", "not") for w in (palavras[0], palavras[1:2] and palavras[1], palavras[-1])):
+        return False   # "no" só cancela no começo: em português "no" também é "em + o" ("sim, apaga o que está no log")
     if any(w in palavras for w in ("mas", "pero", "but", "antes", "primeiro", "depois", "espera",
-                                   "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
+                                   "não", "nao", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
 
@@ -1354,8 +1356,10 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
+    if any(w in ("no", "not") for w in (palavras[0], palavras[1:2] and palavras[1], palavras[-1])):
+        return False   # "no" só cancela no começo: em português "no" também é "em + o" ("sim, apaga o que está no log")
     if any(w in palavras for w in ("mas", "pero", "but", "antes", "primeiro", "depois", "espera",
-                                   "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
+                                   "não", "nao", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
 
@@ -1503,7 +1507,7 @@ PASSOU IA não apaga nem com ordem direta …
 PASSOU aceita rm dentro da área
 …
 PASSOU apagou depois do sim …
-…            (50 linhas PASSOU no total)
+…            (52 linhas PASSOU no total)
 TUDO OK</pre>
     <p>Apague também a isca da etapa 5, que não precisa mais ficar na VPS: <code>rm -r fora</code>.</p>
     <p><strong>Para parar:</strong> antes de ligar o serviço, pare o bot de teste e o Telegram falso (<kbd>Ctrl+C</kbd> nos terminais 2 e 1). Uma instância só: com o serviço ligado, não rode <code>python3 bot.py</code> à mão (os dois disputariam as mensagens). Para desligar o serviço: <code>systemctl --user stop telegram-vps-remoto</code> (e <code>disable</code> para ele não voltar no boot).</p>
@@ -1556,8 +1560,8 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
   <h2>Testado por quem nunca tinha visto</h2>
   <p class="sub">Não basta o autor dizer que funciona. Por isso um agente novo seguiu o texto do zero, e a suíte de testes tenta furar as travas de propósito.</p>
   <div class="grid g3">
-    <div class="card"><div class="big">50</div><h3>testes das travas, todos valendo na sua VPS</h3><p>Entre eles: lista vazia, um <code>.env</code> falso dentro da área e uma isca com segredo falso fora dela que não saem, apagar que vira proposta, 18 comandos e opções perigosas recusados (curinga incluído), 18 confirmações conferidas (12 recusadas), uma configuração armadilha que libera <code>rm</code> e o fluxo completo pelo "sim".</p></div>
-    <div class="card"><div class="big">4</div><h3>rodadas de um agente novo, do zero</h3><p>Um Claude Code novo (Sonnet), que nunca tinha visto o projeto, montou o bot do zero com o Telegram falso. Na 1ª rodada achou uma ordem de linhas que quebrava a etapa 6; o texto foi corrigido. As rodadas 3 e 4 usaram só esta página: as 9 etapas passaram com TUDO OK (na época a suíte tinha 39 e 40 testes; hoje tem 50).</p></div>
+    <div class="card"><div class="big">52</div><h3>testes das travas, todos valendo na sua VPS</h3><p>Entre eles: lista vazia, um <code>.env</code> falso dentro da área e uma isca com segredo falso fora dela que não saem, apagar que vira proposta, 18 comandos e opções perigosas recusados (curinga incluído), 20 confirmações conferidas (13 recusadas), uma configuração armadilha que libera <code>rm</code> e o fluxo completo pelo "sim".</p></div>
+    <div class="card"><div class="big">4</div><h3>rodadas de um agente novo, do zero</h3><p>Um Claude Code novo (Sonnet), que nunca tinha visto o projeto, montou o bot do zero com o Telegram falso. Na 1ª rodada achou uma ordem de linhas que quebrava a etapa 6; o texto foi corrigido. As rodadas 3 e 4 usaram só esta página: as 9 etapas passaram com TUDO OK (na época a suíte tinha 39 e 40 testes; hoje tem 52).</p></div>
     <div class="card"><div class="big">1</div><h3>furo real achado e fechado</h3><p>O bot original herdava as permissões pessoais do Claude Code. Numa máquina com <code>rm</code> liberado, "apague a pasta logs" apagou. Com a correção da etapa 5, o mesmo pedido não apaga nada.</p></div>
   </div>
 </div></section>

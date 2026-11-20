@@ -69,7 +69,7 @@ Who does what: 🧠 you (on the VPS) · ⚙️ script/service · 🤖 Claude Cod
 5. Only `sim`/`s`/`confirmo`/`confirma`/`yes` (or `pode`/`ok`/`manda`/`faz` on their own) confirm; never with `?`, or with `mas`/`antes`/`primeiro`/`depois`/`espera` (“sim, mas antes faz backup” cancels), or with a negation (`não`/`no`/`not`/`cancela`/`nunca`/`pare`/`para`: “sim, não apaga” cancels). Valid for 10 minutes. The bot executes the action, without a shell. `tar -x` is listed first (rejects `/`, `..`, and links).
 6. `auditoria.jsonl` records every event, without the token. No `ANTHROPIC_*`/`OPENAI_*`/`OPENROUTER_*`/`TELEGRAM_*` keys are passed to the Claude process.
 
-**Tests:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` (8 short Claude Code calls) uses temporary working and audit folders, places a trap `settings.json` that allows `rm`, and a fake secret outside the working folder; 50 tests, output `TUDO OK`. All of them are valid on your VPS: the key test uses a fake `.env` inside the temporary area.
+**Tests:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` (8 short Claude Code calls) uses temporary working and audit folders, places a trap `settings.json` that allows `rm`, and a fake secret outside the working folder; 52 tests, output `TUDO OK`. All of them are valid on your VPS: the key test uses a fake `.env` inside the temporary area.
 
 **Proof:** the validation is in [`validacao/`](validacao/): a new agent (Claude Code, Sonnet model) received only the text, built the bot from scratch with the fake Telegram server, and ran the tests.
 

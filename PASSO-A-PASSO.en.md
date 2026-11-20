@@ -638,8 +638,10 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
+    if any(w in ("no", "not") for w in (palavras[0], palavras[1:2] and palavras[1], palavras[-1])):
+        return False   # "no" só cancela no começo: em português "no" também é "em + o" ("sim, apaga o que está no log")
     if any(w in palavras for w in ("mas", "pero", "but", "antes", "primeiro", "depois", "espera",
-                                   "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
+                                   "não", "nao", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
 
@@ -812,7 +814,7 @@ Also delete the bait from step 5, which no longer needs to stay on the VPS: `rm 
 
 The test imports your `bot.py` and uses the names from this guide (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): if you renamed anything, it will fail. It uses a **temporary** area and audit log (it won’t touch the running bot) and sets up two deliberate traps: a `settings.json` that allows `rm` (the bot must ignore it) and a decoy file with a fake secret **outside** the area (the AI must not reveal its contents). Expected output: every `PASSOU ...` line and, at the end, `TUDO OK`.
 
-> All 50 tests are valid on your VPS: the fake `.env` and the bait with a fake secret live in a temporary folder the test creates itself. Expected output: 50 `PASSOU` lines and `TUDO OK`.
+> All 52 tests are valid on your VPS: the fake `.env` and the bait with a fake secret live in a temporary folder the test creates itself. Expected output: 52 `PASSOU` lines and `TUDO OK`.
 
 Stop the test bot (Ctrl+C in terminals 1 and 2). Now the bot becomes a **systemd service** (the Linux program that starts and keeps other programs running): it will restart by itself if it crashes and when the VPS reboots. It’s a service **for your user** (`--user`), with no `sudo`.
 

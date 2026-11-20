@@ -880,7 +880,7 @@ ls area/logs | wc -l</pre>
 
   <div class="step"><div class="b">7</div><div>
     <h3>After your “yes,” the bot executes</h3>
-    <p>Only <code>sim</code>, <code>s</code>, <code>confirmo</code>, <code>confirma</code>, <code>yes</code> (even in a sentence, such as “sim, pode apagar”) or <code>pode</code>, <code>ok</code>, <code>manda</code>, <code>faz</code> on their own count as confirmation. A message with “?” never confirms (“pode listar antes?” deletes nothing), nor does a sentence with “mas,” “antes,” “primeiro,” “depois,” or “espera”: “sim, mas antes faz backup” cancels, and you must ask again. The request is valid for 10 minutes, and a <code>.tar</code> archive is checked before it is opened. Any negation in the sentence also cancels (“não”, “cancela”, “nunca”, “pare”, “para”, “no”, “not”): “sim, não apaga” deletes nothing. (Meaning: <code>sim</code>/<code>s</code> = yes, <code>confirmo</code>/<code>confirma</code> = I confirm, <code>pode</code> = go ahead, <code>manda</code> = send it, <code>faz</code> = do it; <code>não</code> = no, <code>cancela</code> = cancel, <code>nunca</code> = never, <code>pare</code>/<code>para</code> = stop, <code>mas</code> = but, <code>antes</code> = before, <code>primeiro</code> = first, <code>depois</code> = after, <code>espera</code> = wait.)</p>
+    <p>Only <code>sim</code>, <code>s</code>, <code>confirmo</code>, <code>confirma</code>, <code>yes</code> (even in a sentence, such as “sim, pode apagar”) or <code>pode</code>, <code>ok</code>, <code>manda</code>, <code>faz</code> on their own count as confirmation. A message with “?” never confirms (“pode listar antes?” deletes nothing), nor does a sentence with “mas,” “antes,” “primeiro,” “depois,” or “espera”: “sim, mas antes faz backup” cancels, and you must ask again. The request is valid for 10 minutes, and a <code>.tar</code> archive is checked before it is opened. Any negation in the sentence also cancels (“não”, “cancela”, “nunca”, “pare”, “para”; “no” and “not” at the start, right after the yes, or at the end): “sim, não apaga” deletes nothing. (Meaning: <code>sim</code>/<code>s</code> = yes, <code>confirmo</code>/<code>confirma</code> = I confirm, <code>pode</code> = go ahead, <code>manda</code> = send it, <code>faz</code> = do it; <code>não</code> = no, <code>cancela</code> = cancel, <code>nunca</code> = never, <code>pare</code>/<code>para</code> = stop, <code>mas</code> = but, <code>antes</code> = before, <code>primeiro</code> = first, <code>depois</code> = after, <code>espera</code> = wait.)</p>
 <!-- codigo:07-sim-e-execucao -->
     <p class="gab"><strong>First, save this step's code as <code>bot.py</code></strong> in the bot folder (it replaces the previous one). Quick way: download it with the <code>curl</code> below. Or write it yourself: <code>nano bot.py</code>, delete what's there, paste the code from the block below, save with <kbd>Ctrl+O</kbd> and <kbd>Enter</kbd>, and exit with <kbd>Ctrl+X</kbd>. If the bot is already running, stop it (<kbd>Ctrl+C</kbd> in terminal 2) and run it again so the new file takes effect. In the tests, what comes in front of the command (<code>TELEGRAM_BOT_TOKEN=123:falso</code>, <code>DONOS=111</code>) wins over <code>.env</code>.</p>
 <pre>curl -fsSLo bot.py https://raw.githubusercontent.com/inematds/telegram-vps-passo-a-passo/main/etapas/07-sim-e-execucao/bot.py</pre>
@@ -1051,8 +1051,10 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
+    if any(w in ("no", "not") for w in (palavras[0], palavras[1:2] and palavras[1], palavras[-1])):
+        return False   # "no" só cancela no começo: em português "no" também é "em + o" ("sim, apaga o que está no log")
     if any(w in palavras for w in ("mas", "pero", "but", "antes", "primeiro", "depois", "espera",
-                                   "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
+                                   "não", "nao", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
 
@@ -1354,8 +1356,10 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
+    if any(w in ("no", "not") for w in (palavras[0], palavras[1:2] and palavras[1], palavras[-1])):
+        return False   # "no" só cancela no começo: em português "no" também é "em + o" ("sim, apaga o que está no log")
     if any(w in palavras for w in ("mas", "pero", "but", "antes", "primeiro", "depois", "espera",
-                                   "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
+                                   "não", "nao", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
 
@@ -1503,7 +1507,7 @@ PASSOU IA não apaga nem com ordem direta …
 PASSOU aceita rm dentro da área
 …
 PASSOU apagou depois do sim …
-…            (50 PASSOU lines in total)
+…            (52 PASSOU lines in total)
 TUDO OK</pre>
     <p><code>PASSOU</code> = passed, <code>TUDO OK</code> = all good (the test prints in Portuguese).</p>
     <p>Also delete the bait from step 5, which no longer needs to stay on the VPS: <code>rm -r fora</code>.</p>
@@ -1557,8 +1561,8 @@ journalctl --user -u telegram-vps-remoto -n 3 --no-pager</pre>
   <h2>Tested by someone who had never seen it before</h2>
   <p class="sub">It’s not enough for the author to say it works. A new agent followed the guide from scratch, and the test suite deliberately tries to break the safeguards.</p>
   <div class="grid g3">
-    <div class="card"><div class="big">50</div><h3>safeguard tests, all valid on your VPS</h3><p>Among them: an empty list, a fake <code>.env</code> inside the area and a bait with a fake secret outside it that never leak, deleting that turns into a proposal, 18 dangerous commands and options refused (wildcards included), 18 confirmations checked (12 refused), a trap setting that allows <code>rm</code>, and the full flow through the “yes”.</p></div>
-    <div class="card"><div class="big">4</div><h3>rounds by a fresh agent, from scratch</h3><p>A fresh Claude Code (Sonnet) that had never seen the project built the bot from scratch with the fake Telegram. In round 1 it found a line order that broke step 6; the text was fixed. Rounds 3 and 4 used only this page: all 9 steps passed with TUDO OK (back then the suite had 39 and 40 tests; today it has 50).</p></div>
+    <div class="card"><div class="big">52</div><h3>safeguard tests, all valid on your VPS</h3><p>Among them: an empty list, a fake <code>.env</code> inside the area and a bait with a fake secret outside it that never leak, deleting that turns into a proposal, 18 dangerous commands and options refused (wildcards included), 20 confirmations checked (13 refused), a trap setting that allows <code>rm</code>, and the full flow through the “yes”.</p></div>
+    <div class="card"><div class="big">4</div><h3>rounds by a fresh agent, from scratch</h3><p>A fresh Claude Code (Sonnet) that had never seen the project built the bot from scratch with the fake Telegram. In round 1 it found a line order that broke step 6; the text was fixed. Rounds 3 and 4 used only this page: all 9 steps passed with TUDO OK (back then the suite had 39 and 40 tests; today it has 52).</p></div>
     <div class="card"><div class="big">1</div><h3>real loophole found and closed</h3><p>The original bot inherited Claude Code’s personal permissions. On a machine where <code>rm</code> was allowed, “delete the logs folder” deleted it. With the step 5 fix, the same request changes nothing.</p></div>
   </div>
 </div></section>

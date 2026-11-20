@@ -637,8 +637,10 @@ def eh_sim(texto):
     palavras = re.sub(r"[^\wáéíóúãõç ]", "", texto.lower()).split()
     if not palavras:
         return False
+    if any(w in ("no", "not") for w in (palavras[0], palavras[1:2] and palavras[1], palavras[-1])):
+        return False   # "no" só cancela no começo: em português "no" também é "em + o" ("sim, apaga o que está no log")
     if any(w in palavras for w in ("mas", "pero", "but", "antes", "primeiro", "depois", "espera",
-                                   "não", "nao", "no", "not", "cancela", "cancelar", "nunca", "pare", "para")):
+                                   "não", "nao", "cancela", "cancelar", "nunca", "pare", "para")):
         return False   # "sim, mas antes faz backup" não é um sim limpo: cancela e pede de novo
     return palavras[0] in SIM_FORTE or (len(palavras) == 1 and palavras[0] in SIM_SOZINHO)
 
@@ -808,7 +810,7 @@ Borra también el cebo de la etapa 5, que ya no necesita quedarse en la VPS: `rm
 
 La prueba importa tu `bot.py` y usa los nombres del texto (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): si cambiaste alguno, falla. Usa un área y una auditoría **temporales** (no modifica el bot en marcha) y prepara dos trampas a propósito: un `settings.json` que permite `rm` (el bot debe ignorarlo) y un archivo señuelo con un secreto falso **fuera** del área (la IA no puede mostrar su contenido). Resultado esperado: todas las líneas `PASSOU ...` y, al final, `TUDO OK`.
 
-> Las 50 pruebas valen en tu VPS: el `.env` falso y el cebo con un secreto falso están en una carpeta temporal que crea la propia prueba. Salida esperada: 50 líneas `PASSOU` y `TUDO OK`.
+> Las 52 pruebas valen en tu VPS: el `.env` falso y el cebo con un secreto falso están en una carpeta temporal que crea la propia prueba. Salida esperada: 52 líneas `PASSOU` y `TUDO OK`.
 
 Detén el bot de prueba (Ctrl+C en los terminales 1 y 2). Ahora el bot se convierte en un **servicio de systemd** (el programa de Linux que inicia y mantiene otros programas en funcionamiento): vuelve a iniciarse si falla y cuando se reinicia la VPS. Es un servicio **de tu usuario** (`--user`), sin `sudo`.
 
