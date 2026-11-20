@@ -69,7 +69,7 @@ Quem faz: 🧠 você (na VPS) · ⚙️ script/serviço · 🤖 Claude Code (`cl
 5. Só `sim`/`s`/`confirmo`/`confirma`/`yes` (ou `pode`/`ok`/`manda`/`faz` sozinhos) confirmam; com `?` nunca, nem com `mas`/`antes`/`primeiro`/`depois`/`espera` ("sim, mas antes faz backup" cancela). Vale 10 min. Quem executa é o bot, sem shell. `tar -x` é listado antes (recusa `/`, `..`, link).
 6. `auditoria.jsonl` guarda cada evento, sem o token. Nenhuma chave `ANTHROPIC_*`/`OPENAI_*`/`OPENROUTER_*`/`TELEGRAM_*` vai para o processo do Claude.
 
-**Testes:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` (7 chamadas curtas do Claude Code) usa área e auditoria temporárias, coloca um `settings.json` armadilha que libera `rm` e uma isca com segredo falso fora da área; 40 testes, saída `TUDO OK`. Um deles (`chaves não saem`) usa `~/.config/inema/.env`, que só existe na máquina do autor: na sua VPS ele passa sem provar nada, e quem prova é a isca fora da área.
+**Testes:** `python3 etapas/09-systemd-e-testes/testes/testar_travas.py` (7 chamadas curtas do Claude Code) usa área e auditoria temporárias, coloca um `settings.json` armadilha que libera `rm` e uma isca com segredo falso fora da área; 40 testes, saída `TUDO OK`. Todos valem na sua VPS: o teste das chaves usa um `.env` falso dentro da área temporária.
 
 **Prova:** a validação está em [`validacao/`](validacao/): um agente novo (Claude Code, modelo Sonnet) recebeu só o texto, montou o bot do zero com o Telegram falso e rodou os testes.
 

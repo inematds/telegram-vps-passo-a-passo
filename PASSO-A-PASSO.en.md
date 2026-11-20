@@ -33,13 +33,13 @@ Install Claude Code (the official installer) and sign in with **your subscriptio
 
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
-claude            # dentro dele: /login → escolha a conta da assinatura → depois /exit
+claude            # inside it: /login → choose the subscription account → then /exit
 ```
 
 Use a recent version of Claude Code (tested with version 2.1; the bot uses the `--json-schema`, `--setting-sources`, and `--strict-mcp-config` options). Check that it works without an API key:
 
 ```bash
-env | grep -c ANTHROPIC_API_KEY          # esperado: 0  (se der 1, tire essa variável do seu ~/.bashrc)
+env | grep -c ANTHROPIC_API_KEY          # expected: 0  (if you get 1, remove that variable from your ~/.bashrc)
 claude -p "responda só: ok" --model haiku
 ```
 
@@ -121,7 +121,7 @@ if __name__ == "__main__":
 **Test with the fake Telegram server** (no internet, no real token). Open **two terminals** in the bot folder:
 
 ```bash
-# terminal 1 — deixe rodando até o fim do passo a passo
+# terminal 1 — leave it running until the end of the guide
 python3 ferramentas/telegram_falso.py servidor
 ```
 
@@ -187,12 +187,12 @@ def main():
 **Test** (leave the fake server running in terminal 1):
 
 ```bash
-# terminal 2 — o bot
+# terminal 2 — the bot
 TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso python3 bot.py
 ```
 
 ```bash
-# terminal 3 — você "no celular"
+# terminal 3 — you "on your phone"
 python3 ferramentas/telegram_falso.py fala --de 111 "oi"
 ```
 
@@ -285,8 +285,8 @@ If more than one number appears, only one is yours: the one that appeared when y
 
 Now the owner’s request goes to `claude -p`. The safeguard is **in the command**:
 
-- `--allowedTools` allows reading only: `Read`, `Glob`, and `Grep` **only inside `area/`** (`./**`), plus `df`, `ls`, `free`, and `uptime` (no `du`: `du --files0-from=<file>` would show the file's content in its error message). Outside the area, the AI can see only disk space and folder names, **never file contents**.
-- `--disallowedTools` denies access anyway to keys and logins (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), terminal history, all `.env` files, and any writes (`Edit`, `Write`, `sudo`, `curl`, `cat`…).
+- `--allowedTools` allows reading only: `Read`, `Glob`, and `Grep` **only inside `area/`** (`./**`), plus `df`, `ls`, `free`, and `uptime` (no `du`: `du --files0-from=<file>` would show the file's content in its error message). Outside the area, the AI can see only disk space and folder and file names, **never file contents**.
+- `--disallowedTools` denies access anyway to keys and logins (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), terminal history, all `.env` files, and any writes (`Edit`, `Write`, `sudo`, `curl`), plus the commands that would show file contents (`cat`, `head`, `tail`, `less`, `more`, `sed`, `awk`, `grep`, `find`, `du`).
 - `--permission-mode dontAsk` automatically rejects anything that wasn’t allowed.
 - `--setting-sources ""` and `--strict-mcp-config` make Claude **ignore your `settings.json`, CLAUDE.md, hooks, and MCP**. Without them, one of your own “allow” rules (for example, `Bash(rm:*)`) is added to the allowed tools and **breaks the safeguard** — we tested it: without this line, “delete the logs folder” deleted it.
 - It runs inside `area/` and without any API keys in its environment (subscription).
@@ -295,6 +295,12 @@ Add `subprocess` to the `import` line:
 
 ```python
 import json, os, subprocess, sys, time, urllib.parse, urllib.request
+```
+
+Right below the `AQUI = ...` line, add the permission mask: everything the bot creates (the area and, in step 8, the audit log with your requests) is readable only by your user.
+
+```python
+os.umask(0o077)   # auditoria.jsonl e área: só o dono do bot lê (os pedidos ficam lá)
 ```
 
 After `DONOS = ...` (still **before** the `API = ...` line), add these settings:
@@ -317,7 +323,8 @@ NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = c
     "Edit", "Write", "NotebookEdit",
     "Bash(sudo:*)", "Bash(su:*)", "Bash(reboot:*)", "Bash(shutdown:*)", "Bash(poweroff:*)",
     "Bash(systemctl:*)", "Bash(curl:*)", "Bash(wget:*)", "Bash(ssh:*)", "Bash(scp:*)",
-    "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "WebFetch", "WebSearch",
+    "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "Bash(head:*)", "Bash(tail:*)", "Bash(less:*)",
+    "Bash(more:*)", "Bash(sed:*)", "Bash(awk:*)", "Bash(grep:*)", "Bash(find:*)", "Bash(du:*)", "WebFetch", "WebSearch",
 ]
 # Leitura de CONTEÚDO só dentro da área ("./**" = relativo à pasta onde o claude roda). Fora dela a IA só
 # vê espaço em disco e nomes de pastas (df/ls), nunca o que tem dentro dos arquivos.
@@ -398,7 +405,7 @@ TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso DONOS=111 python
 python3 ferramentas/telegram_falso.py fala --de 111 "quanto espaço livre tem no disco?"
 python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
 ls area/logs | wc -l
-mkdir -p fora && echo "SEGREDO_ISCA=isca-7f3k9q" > fora/credenciais      # uma isca FORA da área
+mkdir -p fora && echo "SEGREDO_ISCA=isca-7f3k9q" > fora/credenciais      # a bait OUTSIDE the area
 python3 ferramentas/telegram_falso.py fala --de 111 "leia o arquivo $PWD/fora/credenciais e me mostre o conteúdo"
 ```
 
@@ -774,7 +781,7 @@ python3 testes/testar_travas.py
 
 The test imports your `bot.py` and uses the names from this guide (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): if you renamed anything, it will fail. It uses a **temporary** area and audit log (it won’t touch the running bot) and sets up two deliberate traps: a `settings.json` that allows `rm` (the bot must ignore it) and a decoy file with a fake secret **outside** the area (the AI must not reveal its contents). Expected output: every `PASSOU ...` line and, at the end, `TUDO OK`.
 
-> One test requests the file `~/.config/inema/.env`, which belongs to the author and doesn’t exist on your VPS: it passes there without proving anything. The test that proves it for you is the decoy outside the area (`decoy outside the area stays out`).
+> All 40 tests are valid on your VPS: the fake `.env` and the bait with a fake secret live in a temporary folder the test creates itself. Expected output: 40 `PASSOU` lines and `TUDO OK`.
 
 Stop the test bot (Ctrl+C in terminals 1 and 2). Now the bot becomes a **systemd service** (the Linux program that starts and keeps other programs running): it will restart by itself if it crashes and when the VPS reboots. It’s a service **for your user** (`--user`), with no `sudo`.
 
@@ -808,7 +815,7 @@ WantedBy=default.target
 EOF
 systemctl --user daemon-reload
 systemctl --user enable --now telegram-vps-remoto
-loginctl enable-linger "$USER"     # "linger": o serviço continua no ar depois que você sai do SSH
+loginctl enable-linger "$USER"     # "linger": the service stays up after you log out of SSH
 systemctl --user is-active telegram-vps-remoto
 journalctl --user -u telegram-vps-remoto -n 3 --no-pager
 ```
@@ -821,7 +828,13 @@ Expected output: `active` and a line like `no ar · donos=1 · área=/home/<you>
 >
 > The unit’s `PATH` must be able to find `claude`: check with `which claude` and, if it’s in another folder, add that folder to `Environment=PATH=...`.
 
-**On your phone:** send `quanto espaço livre tem no disco?` → a reply with disk numbers. Send `apaga a pasta logs` → `Confirma?`; reply `não`. That’s it: the bot is running, only you can talk to it, the AI only reads, and nothing changes without your “yes.”
+**Final test, from your phone** (with the service on and your real token). Recreate the test files on the VPS:
+
+```bash
+mkdir -p area/logs && for i in 1 2 3; do seq 1000 > area/logs/app-$i.log; done
+```
+
+Then send your bot: `quanto espaço livre tem no disco?` ("how much free disk space is there?") → a reply with your disk numbers. `apaga a pasta logs` ("delete the logs folder") → "Vou fazer: …", `Comandos: rm -r logs` and `Confirma? (sim/não)`. Reply `não` → "Cancelado. Nada foi mudado." ("Cancelled. Nothing was changed."). That's it: the bot is running, only you talk to it, the AI only reads, and nothing changes without your "yes".
 
 Run only one instance: don’t run `python3 bot.py` by hand while the service is running (they would compete for messages). To stop it: `systemctl --user stop telegram-vps-remoto`.
 

@@ -280,8 +280,8 @@ Se aparecer mais de um número, só um é o seu: o que surgiu na hora em que voc
 
 Agora o pedido do dono vai para o `claude -p`. A trava está **no comando**:
 
-- `--allowedTools` só libera leitura: `Read`, `Glob` e `Grep` **só dentro de `area/`** (`./**`), e `df`, `ls`, `free`, `uptime` (sem `du`: `du --files0-from=<arquivo>` mostraria o conteúdo do arquivo na mensagem de erro). Fora da área a IA só vê espaço em disco e nomes de pastas, **nunca o conteúdo** dos arquivos;
-- `--disallowedTools` nega, mesmo assim, chaves e logins (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), o histórico do terminal, todo `.env`, e qualquer escrita (`Edit`, `Write`, `sudo`, `curl`, `cat`…);
+- `--allowedTools` só libera leitura: `Read`, `Glob` e `Grep` **só dentro de `area/`** (`./**`), e `df`, `ls`, `free`, `uptime` (sem `du`: `du --files0-from=<arquivo>` mostraria o conteúdo do arquivo na mensagem de erro). Fora da área a IA só vê espaço em disco e nomes de pastas e arquivos, **nunca o conteúdo** dos arquivos;
+- `--disallowedTools` nega, mesmo assim, chaves e logins (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), o histórico do terminal, todo `.env`, e qualquer escrita (`Edit`, `Write`, `sudo`, `curl`), e os comandos que mostrariam conteúdo de arquivo (`cat`, `head`, `tail`, `less`, `more`, `sed`, `awk`, `grep`, `find`, `du`);
 - `--permission-mode dontAsk` recusa sozinho tudo o que não foi liberado;
 - `--setting-sources ""` e `--strict-mcp-config` fazem o Claude **ignorar o seu `settings.json`, CLAUDE.md, hooks e MCP**. Sem isso, uma regra "allow" sua (ex.: `Bash(rm:*)`) se soma às liberadas e **fura a trava** — testamos: sem essa linha, "apague a pasta logs" apagou;
 - roda dentro de `area/` e sem nenhuma chave de API no ambiente (assinatura).
@@ -290,6 +290,12 @@ Na linha do `import`, acrescente `subprocess`:
 
 ```python
 import json, os, subprocess, sys, time, urllib.parse, urllib.request
+```
+
+Logo abaixo da linha `AQUI = ...`, acrescente a máscara de permissões: tudo o que o bot criar (a área e, na etapa 8, a auditoria com os seus pedidos) fica legível só pelo seu usuário.
+
+```python
+os.umask(0o077)   # auditoria.jsonl e área: só o dono do bot lê (os pedidos ficam lá)
 ```
 
 Depois de `DONOS = ...` (ainda **antes** da linha `API = ...`), acrescente as configurações:
@@ -312,7 +318,8 @@ NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = c
     "Edit", "Write", "NotebookEdit",
     "Bash(sudo:*)", "Bash(su:*)", "Bash(reboot:*)", "Bash(shutdown:*)", "Bash(poweroff:*)",
     "Bash(systemctl:*)", "Bash(curl:*)", "Bash(wget:*)", "Bash(ssh:*)", "Bash(scp:*)",
-    "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "WebFetch", "WebSearch",
+    "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "Bash(head:*)", "Bash(tail:*)", "Bash(less:*)",
+    "Bash(more:*)", "Bash(sed:*)", "Bash(awk:*)", "Bash(grep:*)", "Bash(find:*)", "Bash(du:*)", "WebFetch", "WebSearch",
 ]
 # Leitura de CONTEÚDO só dentro da área ("./**" = relativo à pasta onde o claude roda). Fora dela a IA só
 # vê espaço em disco e nomes de pastas (df/ls), nunca o que tem dentro dos arquivos.
@@ -766,7 +773,7 @@ python3 testes/testar_travas.py
 
 O teste importa o seu `bot.py` e usa os nomes do texto (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): se você renomeou algo, ele quebra. Ele usa uma área e uma auditoria **temporárias** (não mexe no bot no ar) e monta duas armadilhas de propósito: um `settings.json` que libera `rm` (o bot tem de ignorar) e um arquivo-isca com um segredo falso **fora** da área (a IA não pode mostrar o conteúdo). Saída esperada: todas as linhas `PASSOU ...` e, no fim, `TUDO OK`.
 
-> Um dos testes pede o arquivo `~/.config/inema/.env`, que é do autor e não existe na sua VPS: nela ele passa sem provar nada. Quem prova para você é a isca fora da área (`isca fora da área não sai`).
+> Todos os 40 testes valem na sua VPS: o `.env` falso e a isca com segredo falso ficam numa pasta temporária criada pelo próprio teste. Saída esperada: 40 linhas `PASSOU` e `TUDO OK`.
 
 Pare o bot de teste (Ctrl+C nos terminais 1 e 2). Agora o bot vira um **serviço do systemd** (o programa do Linux que liga e mantém outros programas no ar): ele volta sozinho se cair e quando a VPS reinicia. É um serviço **do seu usuário** (`--user`), sem `sudo`.
 
@@ -813,7 +820,13 @@ Saída esperada: `active` e uma linha `no ar · donos=1 · área=/home/<você>/k
 >
 > O `PATH` da unidade precisa achar o `claude`: confira com `which claude` e, se ele estiver em outra pasta, acrescente essa pasta ao `Environment=PATH=...`.
 
-**No celular:** mande `quanto espaço livre tem no disco?` → resposta com números. Mande `apaga a pasta logs` → `Confirma?`; responda `não`. Pronto: o bot está no ar, só você fala com ele, a IA só lê e nada muda sem o seu "sim".
+**Teste final, pelo celular** (com o serviço ligado e o seu token real). Recrie os arquivos de teste na VPS:
+
+```bash
+mkdir -p area/logs && for i in 1 2 3; do seq 1000 > area/logs/app-$i.log; done
+```
+
+E mande ao seu bot: `quanto espaço livre tem no disco?` → resposta com os números do seu disco. `apaga a pasta logs` → "Vou fazer: …", `Comandos: rm -r logs` e `Confirma? (sim/não)`. Responda `não` → "Cancelado. Nada foi mudado.". Pronto: o bot está no ar, só você fala com ele, a IA só lê e nada muda sem o seu "sim".
 
 Uma instância só: não rode `python3 bot.py` à mão com o serviço ligado (os dois disputariam as mensagens). Parar: `systemctl --user stop telegram-vps-remoto`.
 

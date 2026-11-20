@@ -16,6 +16,7 @@ Só biblioteca padrão do Python. Long polling (sem webhook, sem porta aberta).
 import json, os, re, shlex, subprocess, sys, time, urllib.parse, urllib.request
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
+os.umask(0o077)   # auditoria.jsonl e área: só o dono do bot lê (os pedidos ficam lá)
 
 
 def carregar_env(caminho):
@@ -45,7 +46,8 @@ NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = c
     "Edit", "Write", "NotebookEdit",
     "Bash(sudo:*)", "Bash(su:*)", "Bash(reboot:*)", "Bash(shutdown:*)", "Bash(poweroff:*)",
     "Bash(systemctl:*)", "Bash(curl:*)", "Bash(wget:*)", "Bash(ssh:*)", "Bash(scp:*)",
-    "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "WebFetch", "WebSearch",
+    "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "Bash(head:*)", "Bash(tail:*)", "Bash(less:*)",
+    "Bash(more:*)", "Bash(sed:*)", "Bash(awk:*)", "Bash(grep:*)", "Bash(find:*)", "Bash(du:*)", "WebFetch", "WebSearch",
 ]
 # Leitura de CONTEÚDO só dentro da área ("./**" = relativo à pasta onde o claude roda). Fora dela a IA só
 # vê espaço em disco e nomes de pastas (df/ls), nunca o que tem dentro dos arquivos.

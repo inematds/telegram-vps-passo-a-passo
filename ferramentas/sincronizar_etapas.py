@@ -54,7 +54,12 @@ f5 = E("05-leitura", "bot.py")
 u = open(f5).read()
 novo = k[k.index('H = os.path.expanduser("~")\nNEGADO = ['):k.index('# Depois do "sim"')].rstrip("\n") + "\n"
 velho = u[u.index('H = os.path.expanduser("~")\nNEGADO = ['):u.index("\n\ndef tg(")] + "\n"
-open(f5, "w").write(u.replace(velho, novo))
+u = u.replace(velho, novo)
+um = [l for l in k.split("\n") if l.startswith("os.umask(")]
+if um and um[0] not in u:
+    ancora = 'AQUI = os.path.dirname(os.path.abspath(__file__))\n'
+    u = u.replace(ancora, ancora + um[0] + "\n", 1)
+open(f5, "w").write(u)
 
 import ast
 for d in ("05-leitura", "06-proposta-e-validador", "07-sim-e-execucao", "08-auditoria", "09-systemd-e-testes"):

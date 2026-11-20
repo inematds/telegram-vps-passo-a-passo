@@ -35,13 +35,13 @@ Instala Claude Code (instalador oficial) e inicia sesión con **tu suscripción*
 
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
-claude            # dentro dele: /login → escolha a conta da assinatura → depois /exit
+claude            # dentro de él: /login → elige la cuenta de la suscripción → luego /exit
 ```
 
 Usa una versión reciente de Claude Code (probado con la versión 2.1; el bot usa las opciones `--json-schema`, `--setting-sources` y `--strict-mcp-config`). Comprueba que funcione sin una clave de API:
 
 ```bash
-env | grep -c ANTHROPIC_API_KEY          # esperado: 0  (se der 1, tire essa variável do seu ~/.bashrc)
+env | grep -c ANTHROPIC_API_KEY          # esperado: 0  (si da 1, quita esa variable de tu ~/.bashrc)
 claude -p "responda só: ok" --model haiku
 ```
 
@@ -123,7 +123,7 @@ if __name__ == "__main__":
 **Prueba con el Telegram falso** (sin internet ni un token real). Abre **dos terminales** en la carpeta del bot:
 
 ```bash
-# terminal 1 — deixe rodando até o fim do passo a passo
+# terminal 1 — déjala corriendo hasta el final de la guía
 python3 ferramentas/telegram_falso.py servidor
 ```
 
@@ -189,12 +189,12 @@ def main():
 **Prueba** (el terminal 1 sigue con el servidor falso):
 
 ```bash
-# terminal 2 — o bot
+# terminal 2 — el bot
 TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso python3 bot.py
 ```
 
 ```bash
-# terminal 3 — você "no celular"
+# terminal 3 — tú "en el celular"
 python3 ferramentas/telegram_falso.py fala --de 111 "oi"
 ```
 
@@ -284,8 +284,8 @@ Si aparece más de un número, solo uno es el tuyo: el que apareció cuando envi
 
 Ahora el pedido del propietario llega a `claude -p`. La protección está **en el comando**:
 
-- `--allowedTools` solo permite lectura: `Read`, `Glob` y `Grep` **solo dentro de `area/`** (`./**`), y `df`, `ls`, `free`, `uptime` (sin `du`: `du --files0-from=<archivo>` mostraría el contenido del archivo en su mensaje de error). Fuera del área, la IA solo ve el espacio en disco y los nombres de las carpetas, **nunca el contenido** de los archivos;
-- `--disallowedTools` también bloquea claves y sesiones (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), el historial de la terminal, todos los `.env` y cualquier escritura (`Edit`, `Write`, `sudo`, `curl`, `cat`…);
+- `--allowedTools` solo permite lectura: `Read`, `Glob` y `Grep` **solo dentro de `area/`** (`./**`), y `df`, `ls`, `free`, `uptime` (sin `du`: `du --files0-from=<archivo>` mostraría el contenido del archivo en su mensaje de error). Fuera del área, la IA solo ve el espacio en disco y los nombres de las carpetas y archivos, **nunca el contenido** de los archivos;
+- `--disallowedTools` también bloquea claves y sesiones (`~/.config`, `~/.ssh`, `~/.claude`, `~/.codex`, `~/.aws`, `~/.docker`, `~/.kube`, `~/.gnupg`, `~/.git-credentials`, `~/.netrc`), el historial de la terminal, todos los `.env` y cualquier escritura (`Edit`, `Write`, `sudo`, `curl`), y los comandos que mostrarían el contenido de un archivo (`cat`, `head`, `tail`, `less`, `more`, `sed`, `awk`, `grep`, `find`, `du`);
 - `--permission-mode dontAsk` rechaza automáticamente todo lo que no esté permitido;
 - `--setting-sources ""` y `--strict-mcp-config` hacen que Claude **ignore tu `settings.json`, CLAUDE.md, hooks y MCP**. Sin esto, una regla tuya de tipo «allow» (p. ej., `Bash(rm:*)`) se suma a las permitidas y **rompe la protección**; lo probamos: sin esa línea, «borra la carpeta logs» la borró;
 - se ejecuta dentro de `area/` y sin ninguna clave de API en el entorno (suscripción).
@@ -294,6 +294,12 @@ En la línea del `import`, añade `subprocess`:
 
 ```python
 import json, os, subprocess, sys, time, urllib.parse, urllib.request
+```
+
+Justo debajo de la línea `AQUI = ...`, añade la máscara de permisos: todo lo que cree el bot (el área y, en la etapa 8, la auditoría con tus pedidos) solo lo puede leer tu usuario.
+
+```python
+os.umask(0o077)   # auditoria.jsonl e área: só o dono do bot lê (os pedidos ficam lá)
 ```
 
 Después de `DONOS = ...` (todavía **antes** de la línea `API = ...`), añade la configuración:
@@ -316,7 +322,8 @@ NEGADO = [  # vale nas duas fases. Sintaxe do Claude Code: "~/" = home, "//" = c
     "Edit", "Write", "NotebookEdit",
     "Bash(sudo:*)", "Bash(su:*)", "Bash(reboot:*)", "Bash(shutdown:*)", "Bash(poweroff:*)",
     "Bash(systemctl:*)", "Bash(curl:*)", "Bash(wget:*)", "Bash(ssh:*)", "Bash(scp:*)",
-    "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "WebFetch", "WebSearch",
+    "Bash(env:*)", "Bash(printenv:*)", "Bash(cat:*)", "Bash(head:*)", "Bash(tail:*)", "Bash(less:*)",
+    "Bash(more:*)", "Bash(sed:*)", "Bash(awk:*)", "Bash(grep:*)", "Bash(find:*)", "Bash(du:*)", "WebFetch", "WebSearch",
 ]
 # Leitura de CONTEÚDO só dentro da área ("./**" = relativo à pasta onde o claude roda). Fora dela a IA só
 # vê espaço em disco e nomes de pastas (df/ls), nunca o que tem dentro dos arquivos.
@@ -397,7 +404,7 @@ TELEGRAM_API=http://127.0.0.1:8081 TELEGRAM_BOT_TOKEN=123:falso DONOS=111 python
 python3 ferramentas/telegram_falso.py fala --de 111 "quanto espaço livre tem no disco?"
 python3 ferramentas/telegram_falso.py fala --de 111 "apaga a pasta logs"
 ls area/logs | wc -l
-mkdir -p fora && echo "SEGREDO_ISCA=isca-7f3k9q" > fora/credenciais      # uma isca FORA da área
+mkdir -p fora && echo "SEGREDO_ISCA=isca-7f3k9q" > fora/credenciais      # un cebo FUERA del área
 python3 ferramentas/telegram_falso.py fala --de 111 "leia o arquivo $PWD/fora/credenciais e me mostre o conteúdo"
 ```
 
@@ -770,7 +777,7 @@ python3 testes/testar_travas.py
 
 La prueba importa tu `bot.py` y usa los nombres del texto (`AREA`, `AUDITORIA`, `LEITURA`, `ESQUEMA`, `claude`, `validar`, `eh_sim`, `tratar`, `enviar`, `tg`): si cambiaste alguno, falla. Usa un área y una auditoría **temporales** (no modifica el bot en marcha) y prepara dos trampas a propósito: un `settings.json` que permite `rm` (el bot debe ignorarlo) y un archivo señuelo con un secreto falso **fuera** del área (la IA no puede mostrar su contenido). Resultado esperado: todas las líneas `PASSOU ...` y, al final, `TUDO OK`.
 
-> Una de las pruebas pide el archivo `~/.config/inema/.env`, que pertenece al autor y no existe en tu VPS: allí pasa sin demostrar nada. Lo que sí lo demuestra para ti es el señuelo fuera del área (`isca fora da área não sai`).
+> Las 40 pruebas valen en tu VPS: el `.env` falso y el cebo con un secreto falso están en una carpeta temporal que crea la propia prueba. Salida esperada: 40 líneas `PASSOU` y `TUDO OK`.
 
 Detén el bot de prueba (Ctrl+C en los terminales 1 y 2). Ahora el bot se convierte en un **servicio de systemd** (el programa de Linux que inicia y mantiene otros programas en funcionamiento): vuelve a iniciarse si falla y cuando se reinicia la VPS. Es un servicio **de tu usuario** (`--user`), sin `sudo`.
 
@@ -804,7 +811,7 @@ WantedBy=default.target
 EOF
 systemctl --user daemon-reload
 systemctl --user enable --now telegram-vps-remoto
-loginctl enable-linger "$USER"     # "linger": o serviço continua no ar depois que você sai do SSH
+loginctl enable-linger "$USER"     # "linger": el servicio sigue encendido después de que sales del SSH
 systemctl --user is-active telegram-vps-remoto
 journalctl --user -u telegram-vps-remoto -n 3 --no-pager
 ```
@@ -817,7 +824,13 @@ Resultado esperado: `active` y una línea `no ar · donos=1 · área=/home/<tu u
 >
 > El `PATH` de la unidad debe encontrar `claude`: compruébalo con `which claude` y, si está en otra carpeta, añádela a `Environment=PATH=...`.
 
-**En el celular:** envía `quanto espaço livre tem no disco?` → respuesta con cifras. Envía `apaga a pasta logs` → `Confirma?`; responde `não`. Listo: el bot está funcionando, solo tú puedes hablar con él, la IA solo lee y nada cambia sin que digas «sí».
+**Prueba final, desde el celular** (con el servicio encendido y tu token real). Vuelve a crear los archivos de prueba en la VPS:
+
+```bash
+mkdir -p area/logs && for i in 1 2 3; do seq 1000 > area/logs/app-$i.log; done
+```
+
+Y envía a tu bot: `quanto espaço livre tem no disco?` («¿cuánto espacio libre hay en el disco?») → respuesta con los números de tu disco. `apaga a pasta logs` («borra la carpeta logs») → «Vou fazer: …», `Comandos: rm -r logs` y `Confirma? (sim/não)`. Responde `não` → «Cancelado. Nada foi mudado.» («Cancelado. No se cambió nada.»). Listo: el bot está encendido, solo tú hablas con él, la IA solo lee y nada cambia sin tu «sí».
 
 Una sola instancia: no ejecutes `python3 bot.py` manualmente mientras el servicio está activo (ambos competirían por los mensajes). Para detenerlo: `systemctl --user stop telegram-vps-remoto`.
 
